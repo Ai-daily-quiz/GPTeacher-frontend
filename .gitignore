@@ -1,1 +1,10 @@
-.env
+backend/python-server/.env
+backend/python-server/venv/
+backend/python-server/__pycache__/
+backend/node-server/.env
+backend/node-server/node_modules/
+.DS_Store
+_jpype.*
+*.log
+__pycache__/
+*.pyc

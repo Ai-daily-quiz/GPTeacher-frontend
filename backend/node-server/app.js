@@ -18,7 +18,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Python 서버로 텍스트 분류 요청
 app.post("/api/classify", async (req, res) => {
   try {
     const { text } = req.body;
@@ -34,6 +33,7 @@ app.post("/api/classify", async (req, res) => {
 
     res.json(response.data);
   } catch (error) {
+    console.log("🔴 Python server error ");
     console.error("Python server error:", error.message);
     res.status(500).json({
       error: "Failed to connect to Python server",
@@ -42,20 +42,30 @@ app.post("/api/classify", async (req, res) => {
   }
 });
 
+// Python 서버로 텍스트 분류 요청
 app.post("/api/message", async (req, res) => {
   try {
-    const body = req.body;
-    console.log("🟢 브라우저 => Node : req.body");
-    console.log(body);
+    const { clipboard } = req.body;
+    console.log("📥 클립보드 텍스트 길이:", clipboard?.length);
 
-    // 파이썬 서버로 보내기
-    const response = await axios.post("http://localhost:5001/api/relay", {
-      message: "암호 메세지",
-      relayedAt: new Date().toISOString(),
-      originalBody: body,
+    const response = await axios.post("http://localhost:5001/api/analyze", {
+      text: clipboard,
     });
+
+    console.log("✅ Python 서버 응답:", response.data);
+    console.log("📤 클라이언트로 전송");
+
+    // 응답을 클라이언트에게 전송
+    res.json(response.data);
   } catch (error) {
-    console.error(error);
+    console.error(
+      "❌ Python 서버 에러:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({
+      error: "Failed to analyze text",
+      details: error.response?.data || error.message,
+    });
   }
 });
 
