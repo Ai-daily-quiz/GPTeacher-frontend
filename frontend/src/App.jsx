@@ -1,18 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { ClipboardPreview } from './components/ClipboardPreview/ClipboardPreview';
+import { TopicCards } from './components/TopicCards/TopicCards';
 import axios from 'axios';
-import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0);
-  const [previewClipBoard, setPreviewClipBoard] = useState(null);
-  const myClipBoard = navigator.clipboard;
+  const [isPreview, setIsPreview] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isTopicCards, setIsTopicCards] = useState(false);
+  const [isResponse, setIsResponse] = useState(false);
+  const [topics, setTopics] = useState(false);
 
-  const handleClick = () => {};
-
-  const handlePreview = async () => {
-    const clipText = await myClipBoard.readText();
-    const slicedText = clipText.slice(-100);
-    setPreviewClipBoard(slicedText);
+  const analyzeClipboard = async clipText => {
     const payload = {
       clipboard: clipText,
       timestamp: new Date().toISOString(),
@@ -21,32 +19,42 @@ function App() {
       'http://localhost:4000/api/message',
       payload
     );
-    console.log('LLM 결과 주제 : ', response.data);
+    setIsResponse(true);
+    setTopics(response.data.result.topics);
+    console.log('LLM 결과 주제 : ', response.data.result.topics);
   };
+
+  const handleClipBoardSumbit = () => {
+    setIsPreview(false);
+    console.log('제출 버튼 클릭!');
+    // 분석이 완료된 경우 isResponse
+    // debugger;
+    if (isResponse) {
+      setIsTopicCards(true);
+    } else {
+      // 분석이 완료되지 않은 경우 (!isResponse)
+      setIsLoading(true);
+    }
+  };
+
+  useEffect(() => {
+    if (isResponse && isLoading) {
+      setIsLoading(false);
+      setIsTopicCards(true);
+    }
+  }, [isResponse]);
 
   return (
     <>
-      <div>
-        <button onClick={handlePreview}>클립보드 미리보기</button>
-      </div>
-      <div>
-        <textarea
-          name="clipboard"
-          id="clipboard"
-          placeholder="클립보드 미리보기..."
-          value={previewClipBoard}
-          style={{ fontSize: '8px' }}
-        ></textarea>
-      </div>
-      <div>
-        <button onClick={handleClick}>제출</button>
-      </div>
-
-      <div className="card">
-        <button onClick={() => setCount(count => count + 1)}>
-          count is {count}
-        </button>
-      </div>
+      {isPreview && (
+        <ClipboardPreview
+          analyzeClipboard={analyzeClipboard}
+          isLoading={isLoading}
+          onSubmit={handleClipBoardSumbit}
+        />
+      )}
+      {isLoading && 'Loading Indicator'}
+      {isTopicCards && <TopicCards topics={topics} />}
     </>
   );
 }

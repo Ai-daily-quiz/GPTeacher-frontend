@@ -16,16 +16,19 @@ categories = ["역사", "과학", "문학", "경제", "사회", "문화", "기�
 @app.route('/api/analyze', methods=['POST'])
 def analyze_text():
     try:
-        data = request.get_json()
+        clipboard = request.get_json()
 
-        if not data or 'text' not in data:
+        if not clipboard or 'text' not in clipboard:
             return jsonify({"error": "No text provided"}), 400
 
-        text = data['text']
+        text = clipboard['text']
+        # 데이터 클렌징 위치
+        text = cleanse_text(text)
+
         prompt = f"""
         다음 텍스트를 분석해서 아래 카테고리 중 가장 적합한 6개를 선택하고,
-        각 카테고리에 대한 구체적인 세부 주제를 생성해주세요.
-        세부 주제당 O/X퀴즈하나 사지선답 객관식 문제하나 총 두개씩 만들어 주세요.
+        각 카테고리에 대한 구체적인 세부 주제를 생성해줘
+        세부 주제당 O/X퀴즈하나 사지선답 객관식 문제하나 총 두개씩 만들어 줘
 
         카테고리: {', '.join(categories)}
 
@@ -34,12 +37,12 @@ def analyze_text():
         다음 JSON 형식으로만 응답해주세요:
         {{
             "topics": [
-                {{"category": "카테고리명", "title": "세부 주제 제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리명", "title": "세부 주제 제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리명", "title": "세부 주제 제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리명", "title": "세부 주제 제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리명", "title": "세부 주제 제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리명", "title": "세부 주제 제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
+                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
+                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
+                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
+                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
+                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
+                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
             ]
         }}
         """
@@ -57,7 +60,7 @@ def analyze_text():
 
         return jsonify({
             "success": True,
-            "data": result
+            "result": result
         })
 
     except Exception as e:
@@ -67,6 +70,28 @@ def analyze_text():
             "error": str(e)
         }), 500
 
+def cleanse_text(text):
+    original_length = len(text)
+    while '  ' in text : # 2공백 => 1공백
+        text = text.replace('  ', ' ')
+
+    processed_length = len(text)
+    print(f"original_length : {original_length}")
+    print(f"processed_length : {processed_length}")
+
+    while '\n\n\n\n' in text: # 4줄바꿈 => 1줄바꿈
+        text = text.replace('\n\n\n\n', '\n')
+    while '\n\n\n' in text: # 4줄바꿈 => 1줄바꿈
+        text = text.replace('\n\n\n', '\n')
+    while '\n\n' in text: # 4줄바꿈 => 1줄바꿈
+        text = text.replace('\n\n', '\n')
+
+    text = text.strip() # 좌우 공백
+    text = text.replace('\t', ' ') #탭 => 공백하나
+
+    return text
+
+
 if __name__ == '__main__':
-    print("🚀 Python 서버 시작중...")
+    print("🟢 Python 서버 시작중...")
     app.run(debug=True, port=5001)
