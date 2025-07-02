@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 
-export const Quiz = ({ selectedTopic }) => {
+export const Quiz = ({ selectedTopic, setIsTopicComplete }) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const correctAnswer = selectedTopic.questions[questionIndex].correctAnswer; // 객관식 답
 
   console.log(selectedTopic.questions.length);
+  // setIsTopicComplete(false);
   const getOptionStyle = index => {
     // 제출 전
     // 정답 외 #dbdbdb
@@ -40,6 +41,10 @@ export const Quiz = ({ selectedTopic }) => {
     }
   };
   const moveNextQuestion = () => {
+    if (questionIndex === 1) {
+      setIsTopicComplete(true);
+      return;
+    }
     console.log('move next question');
     setSelectedAnswer(null);
     setIsSubmitted(false);
@@ -48,12 +53,12 @@ export const Quiz = ({ selectedTopic }) => {
   return (
     <>
       {/* 주제 */}
-      <div className="bg-[#dcdcdc] mt-3 p-1 rounded-xl">
+      <div className="bg-cyan-500/50 mt-3 p-1 rounded-xl">
         {selectedTopic.category}
       </div>
 
       {/* 문제 */}
-      <div className="bg-[#dcdcdc] mt-3 p-1 rounded-xl text-medium">
+      <div className="bg-cyan-500/20 mt-3 p-1 rounded-xl text-lg">
         {selectedTopic.questions[questionIndex].question}
       </div>
 
@@ -63,7 +68,7 @@ export const Quiz = ({ selectedTopic }) => {
           selectedTopic.questions[questionIndex].options.map(
             (option, index) => (
               <div
-                className="bg-transparent border border-indigo-500 m-3 p-3 rounded-xl text-xs "
+                className="bg-transparent border border-cyan-500 m-3 p-3 rounded-xl text-lg "
                 onClick={() => handleAnswer(index)}
               >
                 {option}

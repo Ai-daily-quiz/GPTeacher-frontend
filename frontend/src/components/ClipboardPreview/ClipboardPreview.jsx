@@ -28,7 +28,7 @@ export const ClipboardPreview = ({ analyzeClipboard, onSubmit }) => {
         <Textarea preview={preview} />
       </div>
       <div>
-        <Button onClick={handleClipBoard} text={'제출'} />
+        <Button onClick={handleClipBoard} text={'퀴즈 생성하기'} />
       </div>
     </>
   );

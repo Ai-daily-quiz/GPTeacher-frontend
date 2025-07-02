@@ -11,6 +11,7 @@ function App() {
   const [isResponse, setIsResponse] = useState(false);
   const [topics, setTopics] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [isTopicComplete, setIsTopicComplete] = useState(false);
 
   const analyzeClipboard = async clipText => {
     const payload = {
@@ -43,6 +44,13 @@ function App() {
   };
 
   useEffect(() => {
+    if (isTopicComplete) {
+      setSelectedTopic(null); // 주제 선택 화면으로 돌아가기
+      setIsTopicComplete(false); // 상태 초기화
+    }
+  }, [isTopicComplete]);
+
+  useEffect(() => {
     if (isResponse && isLoading) {
       setIsLoading(false);
       setIsTopicCards(true);
@@ -59,7 +67,14 @@ function App() {
         />
       )}
       {isLoading && 'Loading Indicator'}
-      {selectedTopic && <Quiz selectedTopic={selectedTopic} />}
+      {selectedTopic && (
+        <div className="p-20 bg-gray-100 rounded-2xl">
+          <Quiz
+            selectedTopic={selectedTopic}
+            setIsTopicComplete={setIsTopicComplete}
+          />
+        </div>
+      )}
       {!selectedTopic && isTopicCards && (
         <TopicCards topics={topics} onTopicSelect={handleSelectedTopic} />
       )}
