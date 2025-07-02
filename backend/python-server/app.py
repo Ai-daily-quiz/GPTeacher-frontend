@@ -4,6 +4,7 @@ import google.generativeai as genai
 import json
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 load_dotenv()
 app = Flask(__name__)
@@ -17,6 +18,8 @@ categories = ["역사", "과학", "문학", "경제", "사회", "문화", "기�
 def analyze_text():
     try:
         clipboard = request.get_json()
+        now = datetime.now()
+        formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
 
         if not clipboard or 'text' not in clipboard:
             return jsonify({"error": "No text provided"}), 400
@@ -26,24 +29,46 @@ def analyze_text():
         text = cleanse_text(text)
 
         prompt = f"""
-        다음 텍스트를 분석해서 아래 카테고리 중 가장 적합한 6개를 선택하고,
-        각 카테고리에 대한 구체적인 세부 주제를 생성해줘
-        세부 주제당 O/X퀴즈하나 사지선답 객관식 문제하나 총 두개씩 만들어 줘
-
+        다음 텍스트를 분석해서 아래 카테고리 중 가장 적합한 4개의 세부 주제 선택해서 제시해줘.
+        각 카테고리에 대한 구체적인 세부 주제를 생성해줘.
         카테고리: {', '.join(categories)}
 
-        텍스트: {text[:5000]}
+        텍스트: {text[:10000]}
 
-        다음 JSON 형식으로만 응답해주세요:
+        아래 주제 한개의 JSON형식 참고해서 topics 배열로 응답해줘
+        id는 {formatted_date} 을 추가하고 second를 하나씩 더해서 만들어줘.
+
+        - 객관식: "category-YYMMDD-HHMMSS-mc-001"
+        - OX문제: "category-YYMMDD-HHMMSS-ox-001"
+        주제당 객관식 하나 OX 하나 만들어줘.
+        correctAnswer: 0~3 까지 index랑 동일하게 줘.
         {{
-            "topics": [
-                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-                {{"category": "카테고리", "title": "제목", "description": "주제 설명", "quizOX": "OX 문제", quizMultipleChoice: "객관식 문제" }},
-            ]
+          "topics": [
+            {{
+              "id": "technology-240702-193156",
+              "category": "기술",
+              "title": "기계식 키보드",
+              "description": "...",
+              "questions": [
+                {{
+                  "id": "technology-240702-193156-mc-001",
+                  "type": "multiple",
+                  "question": "...",
+                  "options": [...],
+                  "correctAnswer": 3,
+                  "explanation": "..."
+                }},
+                {{
+                  "id": "technology-240702-193156-ox-001",
+                  "type": "ox",
+                  "question": "...",
+                  "options": ["O", "X"]
+                  "correctAnswer": false,
+                  "explanation": "..."
+                }}
+              ]
+            }}
+          ]
         }}
         """
 

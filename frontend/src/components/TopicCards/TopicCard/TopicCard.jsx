@@ -1,9 +1,9 @@
-import './TopicCard.css';
-
-export const TopicCard = ({ topic }) => {
+export const TopicCard = ({ topic, onClick }) => {
   return (
     <>
-      <div className="TopicCard">{topic.category}</div>
+      <div onClick={onClick} className="text-lg">
+        {topic.category}
+      </div>
     </>
   );
 };

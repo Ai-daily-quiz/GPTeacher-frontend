@@ -1,12 +1,23 @@
 import { TopicCard } from './TopicCard/TopicCard';
-import './TopicCards.css';
 
-export const TopicCards = ({ topics }) => {
+export const TopicCards = ({ topics, onTopicSelect }) => {
+  const handleTopic = topic => {
+    console.log(topic);
+    onTopicSelect(topic);
+  };
+
   return (
     <>
-      <div className="card">
-        {topics.map((topic, index) => (
-          <TopicCard key={index} topic={topic} />
+      <div className="font-medium mb-5">주제를 선택해주세요</div>
+      <div className="grid grid-cols-2 gap-6">
+        {topics.map(topic => (
+          <div className="bg-cyan-500/50 rounded-lg shadow-lg p-5">
+            <TopicCard
+              key={topic.id}
+              topic={topic}
+              onClick={() => handleTopic(topic)}
+            />
+          </div>
         ))}
       </div>
     </>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ClipboardPreview } from './components/ClipboardPreview/ClipboardPreview';
 import { TopicCards } from './components/TopicCards/TopicCards';
 import axios from 'axios';
+import { Quiz } from './components/Quiz/Quiz';
 
 function App() {
   const [isPreview, setIsPreview] = useState(true);
@@ -9,6 +10,7 @@ function App() {
   const [isTopicCards, setIsTopicCards] = useState(false);
   const [isResponse, setIsResponse] = useState(false);
   const [topics, setTopics] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
   const analyzeClipboard = async clipText => {
     const payload = {
@@ -26,15 +28,18 @@ function App() {
 
   const handleClipBoardSumbit = () => {
     setIsPreview(false);
-    console.log('제출 버튼 클릭!');
+    console.log('보내기 버튼 클릭!');
     // 분석이 완료된 경우 isResponse
-    // debugger;
     if (isResponse) {
       setIsTopicCards(true);
     } else {
       // 분석이 완료되지 않은 경우 (!isResponse)
       setIsLoading(true);
     }
+  };
+
+  const handleSelectedTopic = topic => {
+    setSelectedTopic(topic);
   };
 
   useEffect(() => {
@@ -54,7 +59,10 @@ function App() {
         />
       )}
       {isLoading && 'Loading Indicator'}
-      {isTopicCards && <TopicCards topics={topics} />}
+      {selectedTopic && <Quiz selectedTopic={selectedTopic} />}
+      {!selectedTopic && isTopicCards && (
+        <TopicCards topics={topics} onTopicSelect={handleSelectedTopic} />
+      )}
     </>
   );
 }
