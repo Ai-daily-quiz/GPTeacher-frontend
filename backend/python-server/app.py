@@ -12,7 +12,10 @@ CORS(app)
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
 
 model = genai.GenerativeModel('gemini-2.0-flash') # 문제 출제 ?
-categories = ["역사", "과학", "문학", "경제", "사회", "문화", "기술", "예술"]
+# categories = ["역사", "과학", "문학", "경제", "사회", "문화", "기술", "예술"]
+categories = ["문화/예술", "경제/경영", "엔터테인먼트", "음식/요리", "게임", "일반상식", "지리", "역사", "IT/기술", "언어/문학", "의학/건강", "자연/환경", "정치/사회", "과학", "스포츠"]
+
+
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_text():

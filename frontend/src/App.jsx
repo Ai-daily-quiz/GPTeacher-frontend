@@ -3,6 +3,17 @@ import { ClipboardPreview } from './components/ClipboardPreview/ClipboardPreview
 import { TopicCards } from './components/TopicCards/TopicCards';
 import axios from 'axios';
 import { Quiz } from './components/Quiz/Quiz';
+import LoginModal from './components/LoginModal/LoginModal';
+import supabase from './supabase';
+
+const testConnection = async () => {
+  const { data, error } = await supabase.from('topics').select('*');
+
+  console.log('Topics:', data);
+  console.log('Error:', error);
+};
+
+testConnection();
 
 function App() {
   const [isPreview, setIsPreview] = useState(true);
@@ -12,6 +23,23 @@ function App() {
   const [topics, setTopics] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [isTopicComplete, setIsTopicComplete] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // 현재 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // 인증 상태 변화 감지
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const analyzeClipboard = async clipText => {
     const payload = {
@@ -59,6 +87,19 @@ function App() {
 
   return (
     <>
+      <div>
+        {user ? (
+          <div>
+            <p>안녕하세요, {user.email}!</p>
+            <LoginModal />
+          </div>
+        ) : (
+          <div>
+            <p>로그인이 필요합니다.</p>
+            <LoginModal />
+          </div>
+        )}
+      </div>
       {isPreview && (
         <ClipboardPreview
           analyzeClipboard={analyzeClipboard}
