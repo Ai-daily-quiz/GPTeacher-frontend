@@ -6,15 +6,6 @@ import { Quiz } from './components/Quiz/Quiz';
 import LoginModal from './components/LoginModal/LoginModal';
 import supabase from './supabase';
 
-const testConnection = async () => {
-  const { data, error } = await supabase.from('topics').select('*');
-
-  console.log('Topics:', data);
-  console.log('Error:', error);
-};
-
-testConnection();
-
 function App() {
   const [isPreview, setIsPreview] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,14 +32,70 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  const getPendingQuiz = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await axios.get(
+        'http://localhost:4000/api/quiz/pending',
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      console.log('풀던 퀴즈 리스트:', response.data);
+    } catch (error) {
+      console.error('퀴즈 가져오기 오류:', error);
+    }
+  };
+
+  const submitQuizAnswer = async (quizId, userChoice, result) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await axios.post(
+        'http://localhost:4000/api/quiz/submit',
+        {
+          quizId: quizId,
+          userChoice: userChoice,
+          result: result,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      console.log('퀴즈 결과 저장됨:', response.data);
+    } catch (error) {
+      console.error('퀴즈 제출 오류:', error);
+    }
+  };
+
   const analyzeClipboard = async clipText => {
     const payload = {
       clipboard: clipText,
       timestamp: new Date().toISOString(),
     };
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    // const session = await supabase.auth.getSession();
     const response = await axios.post(
       'http://localhost:4000/api/message',
-      payload
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      }
     );
     setIsResponse(true);
     setTopics(response.data.result.topics);
@@ -105,6 +152,7 @@ function App() {
           analyzeClipboard={analyzeClipboard}
           isLoading={isLoading}
           onSubmit={handleClipBoardSumbit}
+          onGetQuizzes={getPendingQuiz}
         />
       )}
       {isLoading && 'Loading Indicator'}
@@ -113,6 +161,7 @@ function App() {
           <Quiz
             selectedTopic={selectedTopic}
             setIsTopicComplete={setIsTopicComplete}
+            onClickSubmit={submitQuizAnswer}
           />
         </div>
       )}

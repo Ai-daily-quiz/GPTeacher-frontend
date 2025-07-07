@@ -3,7 +3,11 @@ import './ClipboardPreview.css';
 import { Button } from './Button/Button';
 import { Textarea } from './Button/Textarea';
 
-export const ClipboardPreview = ({ analyzeClipboard, onSubmit }) => {
+export const ClipboardPreview = ({
+  analyzeClipboard,
+  onSubmit,
+  onGetQuizzes,
+}) => {
   const [preview, setPreview] = useState(null);
   const myClipBoard = navigator.clipboard;
 
@@ -28,7 +32,11 @@ export const ClipboardPreview = ({ analyzeClipboard, onSubmit }) => {
         <Textarea preview={preview} />
       </div>
       <div>
-        <Button onClick={handleClipBoard} text={'퀴즈 생성하기'} />
+        <Button
+          onClick={() => onGetQuizzes()}
+          text={'풀다 만 퀴즈가 있어요!'}
+        />
+        <Button onClick={handleClipBoard} text={'새 퀴즈 생성하기'} />
       </div>
     </>
   );

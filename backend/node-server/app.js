@@ -42,15 +42,56 @@ app.post("/api/classify", async (req, res) => {
   }
 });
 
+app.get("/api/quiz/pending", async (req, res) => {
+  try {
+    const response = await axios.get("http://localhost:5001/api/quiz/pending", {
+      headers: req.headers,
+    });
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Python 서버로 텍스트 분류 요청
+app.post("/api/quiz/submit", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "http://localhost:5001/api/quiz/submit",
+      req.body,
+      { headers: req.headers }
+    );
+
+    console.log("🟢 Python 서버 응답:", response.data);
+    console.log("🟢 클라이언트로 전송");
+
+    // 응답을 클라이언트에게 전송
+    res.json(response.data);
+  } catch (error) {
+    console.error("Python 서버 에러:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Failed to analyze text",
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
 app.post("/api/message", async (req, res) => {
   try {
     const { clipboard } = req.body;
     console.log("🟢 클립보드 텍스트 길이:", clipboard?.length);
-
-    const response = await axios.post("http://localhost:5001/api/analyze", {
-      text: clipboard,
-    });
+    const authHeader = req.headers.authorization;
+    const response = await axios.post(
+      "http://localhost:5001/api/analyze",
+      {
+        text: clipboard,
+      },
+      {
+        headers: {
+          Authorization: authHeader, // 헤더 전달
+        },
+      }
+    );
 
     console.log("🟢 Python 서버 응답:", response.data);
     console.log("🟢 클라이언트로 전송");
