@@ -14,12 +14,15 @@ function App() {
   const [topics, setTopics] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [isTopicComplete, setIsTopicComplete] = useState(false);
+  const [isPendingQuestion, setIsPendingQuestion] = useState(null);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     // 현재 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      console.log('로그인 확인');
+      countPending();
     });
 
     // 인증 상태 변화 감지
@@ -31,6 +34,31 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const countPending = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await axios.get(
+        'http://localhost:4000/api/quiz/count-pending',
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+      const pendingQuizzes = response.data.pending_count;
+      console.log('진행중인 퀴즈 수:', response.data.pending_count);
+      setIsPendingQuestion(pendingQuizzes);
+      // setTopics(response.data.result);
+      // setIsTopicCards(true);
+      return response.data.pending_count;
+    } catch (error) {
+      console.error('퀴즈 가져오기 오류:', error);
+    }
+  };
 
   const getPendingQuiz = async () => {
     try {
@@ -47,13 +75,23 @@ function App() {
         }
       );
 
-      console.log('풀던 퀴즈 리스트:', response.data);
+      console.log('진행중인 퀴즈 리스트:', response.data.result);
+      console.log('진행중인 퀴즈 수:', response.data.pending_count);
+      // topicCards 랜더링
+      setTopics(response.data.result);
+      setIsTopicCards(true);
     } catch (error) {
       console.error('퀴즈 가져오기 오류:', error);
     }
   };
 
-  const submitQuizAnswer = async (quizId, userChoice, result) => {
+  const submitQuizAnswer = async (
+    quizId,
+    topicId,
+    userChoice,
+    result,
+    questionIndex
+  ) => {
     try {
       const {
         data: { session },
@@ -63,8 +101,10 @@ function App() {
         'http://localhost:4000/api/quiz/submit',
         {
           quizId: quizId,
+          topicId: topicId,
           userChoice: userChoice,
           result: result,
+          questionIndex: questionIndex,
         },
         {
           headers: {
@@ -153,6 +193,7 @@ function App() {
           isLoading={isLoading}
           onSubmit={handleClipBoardSumbit}
           onGetQuizzes={getPendingQuiz}
+          isPendingQuestion={isPendingQuestion}
         />
       )}
       {isLoading && 'Loading Indicator'}
@@ -165,6 +206,8 @@ function App() {
           />
         </div>
       )}
+      {/* 풀다 만 퀴즈가 있어요! */}
+      {}
       {!selectedTopic && isTopicCards && (
         <TopicCards topics={topics} onTopicSelect={handleSelectedTopic} />
       )}

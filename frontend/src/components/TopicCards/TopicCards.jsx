@@ -13,7 +13,7 @@ export const TopicCards = ({ topics, onTopicSelect }) => {
         {topics.map(topic => (
           <div className="bg-cyan-500/50 rounded-lg shadow-lg p-5">
             <TopicCard
-              key={topic.id}
+              key={topic.topic_id}
               topic={topic}
               onClick={() => handleTopic(topic)}
             />

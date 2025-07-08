@@ -7,6 +7,7 @@ export const ClipboardPreview = ({
   analyzeClipboard,
   onSubmit,
   onGetQuizzes,
+  isPendingQuestion,
 }) => {
   const [preview, setPreview] = useState(null);
   const myClipBoard = navigator.clipboard;
@@ -32,10 +33,12 @@ export const ClipboardPreview = ({
         <Textarea preview={preview} />
       </div>
       <div>
-        <Button
-          onClick={() => onGetQuizzes()}
-          text={'풀다 만 퀴즈가 있어요!'}
-        />
+        {isPendingQuestion > 0 && (
+          <Button
+            onClick={() => onGetQuizzes()}
+            text={'진행중인 퀴즈가 있어요!'}
+          />
+        )}
         <Button onClick={handleClipBoard} text={'새 퀴즈 생성하기'} />
       </div>
     </>

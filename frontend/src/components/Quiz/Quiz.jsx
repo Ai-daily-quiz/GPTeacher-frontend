@@ -1,5 +1,3 @@
-// import { Button } from './Button/Button';
-
 import { useState } from 'react';
 
 export const Quiz = ({ selectedTopic, setIsTopicComplete, onClickSubmit }) => {
@@ -8,7 +6,6 @@ export const Quiz = ({ selectedTopic, setIsTopicComplete, onClickSubmit }) => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const correctAnswer = selectedTopic.questions[questionIndex].correctAnswer; // 객관식 답
 
-  console.log(selectedTopic.questions.length);
   // setIsTopicComplete(false);
   const getOptionStyle = index => {
     // 제출 전
@@ -20,6 +17,7 @@ export const Quiz = ({ selectedTopic, setIsTopicComplete, onClickSubmit }) => {
     // 제출 후
     // 정답 #20d46e
     if (index === correctAnswer) {
+      setIsTopicComplete;
       return 'bg-green-100 border-2 border-green-500 m-3 p-3 rounded-xl text-xs';
     }
 
@@ -33,19 +31,12 @@ export const Quiz = ({ selectedTopic, setIsTopicComplete, onClickSubmit }) => {
   const handleAnswer = index => {
     setIsSubmitted(true);
     setSelectedAnswer(index);
-    console.log('내 선택 : ', index + 1);
-    if (index === selectedAnswer) {
-      console.log('정답');
-    } else {
-      console.log('오답');
-    }
   };
   const moveNextQuestion = () => {
     if (questionIndex === 1) {
       setIsTopicComplete(true);
       return;
     }
-    console.log('move next question');
     setSelectedAnswer(null);
     setIsSubmitted(false);
     setQuestionIndex(questionIndex + 1);
@@ -108,19 +99,23 @@ export const Quiz = ({ selectedTopic, setIsTopicComplete, onClickSubmit }) => {
       )}
 
       {/* 다음 */}
-      <div
-        className="bg-[#dcdcdc] rounded-lg float-right w-1/6 mt-1 text-xs"
-        onClick={() => {
-          moveNextQuestion();
-          onClickSubmit(
-            selectedTopic.questions[questionIndex].id,
-            selectedAnswer, // 선택한 답
-            selectedAnswer === correctAnswer ? 'pass' : 'fail' // result
-          );
-        }}
-      >
-        {'다음'}
-      </div>
+      {isSubmitted && (
+        <div
+          className="bg-[#dcdcdc] rounded-lg float-right w-1/6 mt-1 text-xs"
+          onClick={() => {
+            moveNextQuestion();
+            onClickSubmit(
+              selectedTopic.questions[questionIndex].quiz_id,
+              selectedTopic.topic_id,
+              selectedAnswer, // 선택한 답
+              selectedAnswer === correctAnswer ? 'pass' : 'fail', // result
+              questionIndex
+            );
+          }}
+        >
+          {'다음'}
+        </div>
+      )}
     </>
   );
 };
