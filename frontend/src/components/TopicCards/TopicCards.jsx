@@ -5,7 +5,6 @@ export const TopicCards = ({
   onTopicSelect,
   setIsPreview,
   // handleQuizStart,
-  pendingList,
 }) => {
   setIsPreview(false);
   // handleQuizStart;
