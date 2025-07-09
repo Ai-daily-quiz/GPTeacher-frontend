@@ -9,7 +9,7 @@ export const Quiz = ({
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
-  const correctAnswer = selectedTopic.questions[questionIndex].correctAnswer; // 객관식 답
+  const correctAnswer = selectedTopic.questions[questionIndex].correct_answer; // 객관식 답
 
   // setIsTopicComplete(false);
   const getOptionStyle = index => {

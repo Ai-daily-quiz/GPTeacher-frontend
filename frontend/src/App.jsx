@@ -222,7 +222,6 @@ function App() {
         }
         setSelectedTopic(null); // 주제 선택 화면으로 돌아가기
         setIsTopicComplete(false); // 상태 초기화
-        // setIsPreview(true);
       }
     };
     handleTopicComplete();

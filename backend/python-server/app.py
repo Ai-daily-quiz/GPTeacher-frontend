@@ -220,8 +220,8 @@ def analyze_text():
         ** 형식을 지키고,
         category 영어는 리스트 : {topics_ref} 을 참고해서 만들어줘.
 
-        type: multiple의 correctAnswer는 0~3 까지 index랑 동일하게 줘.
-        type: ox의 correctAnswer는 0~1 까지 index랑 동일하게 줘. ('O' = index 0)
+        type: multiple의 correct_answer 0~3 까지 index랑 동일하게 줘.
+        type: ox의 correct_answer 0~1 까지 index랑 동일하게 줘. ('O' = index 0)
         {{
         "topics": [
         {{
@@ -235,7 +235,7 @@ def analyze_text():
                 "type": "multiple",
                 "question": "...",
                 "options": [...],
-                "correctAnswer": 3,
+                "correct_answer": 3,
                 "explanation": "..."
             }},
             {{
@@ -243,7 +243,7 @@ def analyze_text():
                 "type": "ox",
                 "question": "...",
                 "options": ["O", "X"]
-                "correctAnswer": 1,
+                "correct_answer": 1,
                 "explanation": "..."
             }}
             ]
@@ -268,7 +268,7 @@ def analyze_text():
                     "quiz_type": "multiple_choice" if q["type"] == "multiple" else "ox",
                     "question": q["question"],
                     "options": q["options"],
-                    "correct_answer": str(q["correctAnswer"]),
+                    "correct_answer": q["correct_answer"],
                     "explanation": q["explanation"],
                     "quiz_status": "pending",
                     "topic_status": "pending",
