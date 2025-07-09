@@ -33,12 +33,12 @@ export const ClipboardPreview = ({
         <Textarea preview={preview} />
       </div>
       <div>
-        {isPendingQuestion > 0 && (
+        {/* {isPendingQuestion > 0 && (
           <Button
             onClick={() => onGetQuizzes()}
             text={'진행중인 퀴즈가 있어요!'}
           />
-        )}
+        )} */}
         <Button onClick={handleClipBoard} text={'새 퀴즈 생성하기'} />
       </div>
     </>

@@ -145,6 +145,7 @@ def submit_quiz():
     user_choice = data.get("userChoice")
     result = data.get("result")
     questionIndex = data.get("questionIndex")
+    totalIndex = data.get("totalIndex")
 
     try:
         userInfo = supabase.auth.get_user(token)
@@ -162,7 +163,7 @@ def submit_quiz():
 
         supabase.table("quizzes").update(
             {
-                "topic_status": "done" if questionIndex == 1 else "pending",
+                "topic_status": "done" if questionIndex == totalIndex else "pending",
             }
         ).eq("user_id", userInfo.user.id).eq("topic_id", topic_id).execute()
 
@@ -195,8 +196,15 @@ def analyze_text():
         text = preprocessing_clipBoard_text(input_text)
 
         prompt = f"""
-         **중요 다음 텍스트를 분석해서 아래 카테고리 중 중복되지 않는 가장 적합한 서로 다른 4개의 주제를 제시해줘.
-        각 카테고리 분류기준을 참고해서 구체적인 세부 주제를 생성해줘.
+         **중요 다음 텍스트를 분석해서 적합한 카테고리를 2개 찾아줘.
+        찾은 카테고리들은 겹치지 않게 서로 다른 카테고리들로만 골라줘 **
+
+        카테고리 주제 수 : 서로 다른 2개
+        주제당 퀴즈 문제 수 : 2개
+            - 카테고리 주제 당 ox 문제 수 : 1개
+            - 카테고리 주제 당 multiple a문제 수 : 1개
+        => 전체 총 question 퀴즈 문제 수 4개
+
         카테고리 분류기준 : {category_ref}**
 
         텍스트: {text[:MAX_TEXT_LENGTH]}
@@ -211,7 +219,7 @@ def analyze_text():
         quiz_id : category(영어)-mc-YYMMDD-HHMMSS
         ** 형식을 지키고,
         category 영어는 리스트 : {topics_ref} 을 참고해서 만들어줘.
-        주제당 객관식 하나 OX 하나 만들어줘.
+
         type: multiple의 correctAnswer는 0~3 까지 index랑 동일하게 줘.
         type: ox의 correctAnswer는 0~1 까지 index랑 동일하게 줘. ('O' = index 0)
         {{
@@ -271,7 +279,10 @@ def analyze_text():
         if quiz_list:
             supabase.table("quizzes").insert(quiz_list).execute()
 
-        return jsonify({"success": True, "result": result})
+        return jsonify(
+            {"success": True, "result": result, "total_question": len(quiz_list)}
+        )
+        # return jsonify({"success": True, "result": result})
 
     except Exception as e:
         print(f"Error: {e}")

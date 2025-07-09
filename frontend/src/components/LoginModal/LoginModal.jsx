@@ -15,7 +15,7 @@ const LoginModal = () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
-        scope: ['profile_nickname', 'profile_image'],
+        scopes: ['profile_nickname', 'profile_image'],
         redirectTo: window.location.origin,
       },
     });
