@@ -89,7 +89,7 @@ app.post("/api/quiz/submit", async (req, res) => {
   }
 });
 
-app.post("/api/message", async (req, res) => {
+app.post("/api/analyze", async (req, res) => {
   try {
     const { clipboard } = req.body;
     console.log("🪢 클립보드 텍스트 길이:", clipboard?.length);

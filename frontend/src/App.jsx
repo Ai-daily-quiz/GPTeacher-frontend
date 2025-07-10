@@ -142,7 +142,7 @@ function App() {
     } = await supabase.auth.getSession();
     // const session = await supabase.auth.getSession();
     const response = await axios.post(
-      'http://localhost:4000/api/message',
+      'http://localhost:4000/api/analyze',
       payload,
       {
         headers: {
@@ -191,7 +191,9 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session?.user ?? null);
-        setIsPreview(true);
+        if (!selectedTopic && !isTopicCards) {
+          setIsPreview(true);
+        }
       }
       countPending();
     }, []);
@@ -202,7 +204,9 @@ function App() {
     } = supabase.auth.onAuthStateChange((_, session) => {
       if (session?.user) {
         setUser(session?.user ?? null);
-        setIsPreview(true);
+        if (!selectedTopic && !isTopicCards) {
+          setIsPreview(true);
+        }
       } else {
         setUser(null);
         setIsPreview(false);
@@ -243,58 +247,235 @@ function App() {
     }
   }, [isResponse]);
 
+  useEffect(() => {
+    console.log('상태 로그:', {
+      selectedTopic: !!selectedTopic,
+      isTopicCards,
+      isPreview,
+    });
+  }, [selectedTopic, isTopicCards, isPreview]);
+
   return (
-    <>
-      <div>
+    <div className="min-h-screen relative">
+      {/* 배경 - 4분할 컬러 영역 */}
+      <div className="fixed inset-0 w-[50vw] h-[100vh] left-[25vw]">
+        {/* 좌측 상단 - 오렌지 영역 */}
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-orange-400 opacity-70"></div>
+
+        {/* 우측 상단 - 민트/에메랄드 영역 */}
+        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70"></div>
+
+        {/* 우측 하단 - 노란색 영역 */}
+        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-300 opacity-70"></div>
+
+        {/* 좌측 하단 - 보라색 영역 */}
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-400 opacity-70"></div>
+      </div>
+
+      {/* 로그인 하지 않은 경우에만 배경을 반투명하게 */}
+      {!user && <div className="absolute inset-0 bg-white/50 z-40"></div>}
+
+      <div className="container mx-auto px-4 py-8">
         {user ? (
-          <div>
-            <p>안녕하세요, {user.email}!</p>
-            <LoginModal />
-            {showPendingButton && isPendingQuestion > 0 && !selectedTopic && (
-              // 로그인 상태 && pendingQuestion > 0
-              <Button
-                onClick={handleShowTopics}
-                text={'진행중인 퀴즈가 있어요!'}
-              />
-            )}
+          <div className="relative z-20">
+            {/* 우측 상단에 고정된 헤더 */}
+            <div className="fixed top-4 right-4 flex items-center gap-3 z-50">
+              {/* 진행중인 퀴즈 버튼 */}
+              {showPendingButton && isPendingQuestion > 0 && !selectedTopic && (
+                <button
+                  onClick={handleShowTopics}
+                  className="bg-white text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200"
+                >
+                  진행중인 퀴즈 {isPendingQuestion}개
+                </button>
+              )}
+
+              {/* 로그아웃 버튼 */}
+              <LoginModal user={user} />
+
+              {/* 프로필 이미지 */}
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+                <img
+                  src={
+                    user.user_metadata?.avatar_url ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&background=random`
+                  }
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            <div className="text-center py-12">
+              <h1 className="text-5xl font-bold text-blue-600 mb-2">AI 퀴즈</h1>
+            </div>
           </div>
         ) : (
-          <div>
-            <p>로그인이 필요합니다.</p>
-            <LoginModal />
+          <div className="fixed inset-0 z-50">
+            {/* 배경 - 첨부 이미지처럼 4분할 컬러 영역 */}
+            <div className="absolute inset-0">
+              {/* 좌측 상단 - 오렌지 영역 */}
+              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-orange-400 opacity-70"></div>
+
+              {/* 우측 상단 - 민트/에메랄드 영역 */}
+              <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70"></div>
+
+              {/* 우측 하단 - 노란색 영역 */}
+              <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-300 opacity-70"></div>
+
+              {/* 좌측 하단 - 보라색 영역 */}
+              <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-400 opacity-70"></div>
+            </div>
+
+            {/* 로그인 모달 - 중앙 정렬 */}
+            <div className="relative flex items-center justify-center h-full">
+              <div className="bg-white rounded-2xl shadow-2xl p-8 text-center w-[30%] h-[35%] min-w-[320px] max-w-[500px] mx-auto border border-gray-200">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <svg
+                      className="w-10 h-10 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-xl text-gray-700 font-medium mb-4">
+                    로그인이 필요합니다
+                  </p>
+                  <p className="text-gray-500 mb-6">
+                    퀴즈를 시작하려면 먼저 로그인해주세요
+                  </p>
+                </div>
+                <LoginModal user={user} />
+              </div>
+            </div>
           </div>
         )}
       </div>
-      {isPreview && (
-        <ClipboardPreview
-          analyzeClipboard={analyzeClipboard}
-          isLoading={isLoading}
-          onSubmit={handleClipBoardSumbit}
-          onGetQuizzes={getPendingQuiz}
-          isPendingQuestion={isPendingQuestion}
-        />
-      )}
-      {isLoading && 'Loading Indicator'}
-      {selectedTopic && (
-        // <div className="p-20 bg-gray-100 rounded-2xl">
-        <Quiz
-          selectedTopic={selectedTopic}
-          setIsTopicComplete={setIsTopicComplete}
-          onClickSubmit={submitQuizAnswer}
-          totalQuestion={totalQuestion}
-        />
-        // </div>
-      )}
-      {/* 풀다 만 퀴즈가 있어요! */}
-      {!selectedTopic && isTopicCards && (
-        <TopicCards
-          topics={topics}
-          setIsPreview={setIsPreview}
-          onTopicSelect={handleSelectedTopic}
-          pendingList={pendingList}
-        />
-      )}
-    </>
+      <div className="container mx-auto px-4">
+        {!selectedTopic && !isTopicCards && isPreview && (
+          <div className="animate-fadeIn max-w-4xl mx-auto relative z-20">
+            <div className="relative">
+              {/* 배경 블러 효과 */}
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-400/20 to-purple-400/20 rounded-3xl blur-2xl"></div>
+
+              {/* 메인 컨테이너 */}
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden">
+                {/* 상단 색상 바 */}
+                <div className="h-2 bg-gradient-to-r from-orange-400 via-emerald-400 via-yellow-300 to-purple-400"></div>
+
+                <div className="p-8">
+                  <div className="text-center mb-8">
+                    {/* 아이콘 */}
+                    <div className="inline-flex items-center justify-center w-20 h-20 mb-6">
+                      <div className="absolute w-20 h-20 bg-gradient-to-br from-yellow-400/30 to-orange-500/30 rounded-full animate-pulse"></div>
+                      <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-6 transition-transform">
+                        <span className="text-3xl">📝</span>
+                      </div>
+                    </div>
+                    {/* 제목 */}
+                    <h3 className="text-3xl font-bold text-gray-800 mb-3">
+                      새 퀴즈{' '}
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500">
+                        만들기
+                      </span>
+                    </h3>
+                    {/* 설명 */}
+                    <div>
+                      <p className="text-gray-600 text-lg max-w-md mx-auto">
+                        클립보드의 내용을 붙여넣고{' '}
+                        <span className="font-semibold text-orange-500">
+                          AI
+                        </span>
+                        가 퀴즈를 생성합니다.
+                      </p>
+                      <div className="flex justify-center gap-2 mt-4">
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <ClipboardPreview
+                    analyzeClipboard={analyzeClipboard}
+                    isLoading={isLoading}
+                    onSubmit={handleClipBoardSumbit}
+                    onGetQuizzes={getPendingQuiz}
+                    isPendingQuestion={isPendingQuestion}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20 ">
+            {/* 3개의 점이 튀는 애니메이션 */}
+            <div className="flex space-x-2 mb-8">
+              <div
+                className="w-4 h-4 bg-orange-600 rounded-full animate-bounce"
+                style={{ animationDelay: '0ms' }}
+              ></div>
+              <div
+                className="w-4 h-4 bg-emerald-600 rounded-full animate-bounce"
+                style={{ animationDelay: '150ms' }}
+              ></div>
+              <div
+                className="w-4 h-4 bg-purple-600 rounded-full animate-bounce"
+                style={{ animationDelay: '300ms' }}
+              ></div>
+            </div>
+
+            {/* 텍스트 */}
+            <h3 className="text-2xl font-bold  mb-2">
+              AI가 퀴즈를 만들고 있어요
+            </h3>
+            <p>잠시만 기다려주세요...</p>
+
+            {/* 프로그레스 바 */}
+            <div className="w-64 h-2 bg-gray-400 rounded-full mt-6 overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        )}
+
+        {selectedTopic && (
+          <div className="animate-slideIn">
+            <Quiz
+              selectedTopic={selectedTopic}
+              setIsTopicComplete={setIsTopicComplete}
+              onClickSubmit={submitQuizAnswer}
+              totalQuestion={totalQuestion}
+            />
+          </div>
+        )}
+
+        {!selectedTopic && isTopicCards && (
+          <div className="relative z-20 w-full max-w-5xl mx-auto px-4">
+            <div className="bg-transparent rounded-3xl p-8">
+              <h2 className="text-3xl font-bold text-gray-800 text-center mb-8">
+                퀴즈 주제를 선택해주세요
+              </h2>
+              <TopicCards
+                topics={topics}
+                setIsPreview={setIsPreview}
+                onTopicSelect={handleSelectedTopic}
+                pendingList={pendingList}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
