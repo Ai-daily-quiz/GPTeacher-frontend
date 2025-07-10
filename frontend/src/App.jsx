@@ -208,8 +208,15 @@ function App() {
           setIsPreview(true);
         }
       } else {
-        setUser(null);
-        setIsPreview(false);
+        setUser(null); // 필수 - 로그인 상태
+        setSelectedTopic(null); // 필수 - Quiz 언마운트
+        setIsTopicCards(false); // 필수 - TopicCards 언마운트
+        setIsPreview(false); // 필수 - ClipboardPreview 언마운트
+        setIsNewQuiz(false);
+        setIsResponse(false);
+        setIsLoading(false);
+        setIsTopicComplete(false);
+        setShowPendingButton(true);
       }
     });
 
@@ -273,7 +280,7 @@ function App() {
       </div>
 
       {/* 로그인 하지 않은 경우에만 배경을 반투명하게 */}
-      {!user && <div className="absolute inset-0 bg-white/50 z-40"></div>}
+      {!user && <div className="absolute inset-0 bg-white/50 z-30"></div>}
 
       <div className="container mx-auto px-4 py-8">
         {user ? (

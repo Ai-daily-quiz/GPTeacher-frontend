@@ -61,7 +61,7 @@ export const Quiz = ({
 
   return (
     <>
-      <div className="w-[600px] mx-auto p-10 bg-gray-100 rounded-2xl relative z-30">
+      <div className="w-[600px] mx-auto p-10 bg-gray-100 rounded-2xl relative z-20">
         {/* 문제 index / 전체 문제 수 */}
         <div className="text-right text-lg mb-4">
           {questionIndex + 1 + ' / ' + totalQuestion}
