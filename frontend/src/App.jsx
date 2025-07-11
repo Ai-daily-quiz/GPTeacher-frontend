@@ -5,7 +5,6 @@ import axios from 'axios';
 import { Quiz } from './components/Quiz/Quiz';
 import LoginModal from './components/LoginModal/LoginModal';
 import supabase from './supabase';
-import { Button } from './components/ClipboardPreview/Button/Button';
 
 function App() {
   const [isPreview, setIsPreview] = useState(false);
@@ -276,13 +275,13 @@ function App() {
           <div className="text-right m-10">
             <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
               <button
-                className="absolute top-10 right-10 bg-white text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex items-center gap-2"
+                className="absolute top-4 right-5 bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex items-center gap-2"
                 onClick={() => {
-                  /* 홈으로 이동 로직 */
+                  window.location.href = '/';
                 }}
               >
                 <svg
-                  className="w-4 h-4"
+                  className="w-7 h-7"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
