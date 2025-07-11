@@ -1,9 +1,7 @@
-export const TopicCard = ({ topic, onClick }) => {
+export const TopicCard = ({ topic }) => {
   return (
     <>
-      <div onClick={onClick} className="text-3xl">
-        {topic.category}
-      </div>
+      <div className="text-3xl">{topic.category}</div>
     </>
   );
 };

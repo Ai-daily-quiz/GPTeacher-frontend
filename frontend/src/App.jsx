@@ -158,6 +158,16 @@ function App() {
     console.log('response.data:', response.data);
     console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
   };
+  const handleEndQuiz = async () => {
+    console.log('종료 클릭');
+    // 언마운트할 내용들.
+    try {
+      await getPendingQuiz();
+    } catch (error) {
+      console.error('퀴즈 중간 종료 에러 :', error);
+    }
+    setSelectedTopic(null); // 필수 - Quiz 언마운트
+  };
 
   const handleClipBoardSumbit = () => {
     setIsPreview(false);
@@ -254,14 +264,6 @@ function App() {
     }
   }, [isResponse]);
 
-  useEffect(() => {
-    console.log('상태 로그:', {
-      selectedTopic: !!selectedTopic,
-      isTopicCards,
-      isPreview,
-    });
-  }, [selectedTopic, isTopicCards, isPreview]);
-
   return (
     <div className="min-h-screen relative">
       {/* 배경 - 4분할 컬러 영역 */}
@@ -270,7 +272,32 @@ function App() {
         <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-orange-400 opacity-70"></div>
 
         {/* 우측 상단 - 민트/에메랄드 영역 */}
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70"></div>
+        <div className=" absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
+          <div className="text-right m-10">
+            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
+              <button
+                className="absolute top-10 right-10 bg-white text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex items-center gap-2"
+                onClick={() => {
+                  /* 홈으로 이동 로직 */
+                }}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* 우측 하단 - 노란색 영역 */}
         <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-300 opacity-70"></div>
@@ -458,6 +485,7 @@ function App() {
         {selectedTopic && (
           <div className="animate-slideIn">
             <Quiz
+              clickEnd={handleEndQuiz}
               selectedTopic={selectedTopic}
               setIsTopicComplete={setIsTopicComplete}
               onClickSubmit={submitQuizAnswer}
