@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ClipboardPreview } from './components/ClipboardPreview/ClipboardPreview';
+
 import { TopicCards } from './components/TopicCards/TopicCards';
 import axios from 'axios';
 import { Quiz } from './components/Quiz/Quiz';
@@ -20,6 +21,56 @@ function App() {
   const [totalQuestion, setTotalQuestion] = useState(null);
   const [pendingList, setPendingList] = useState(null);
   const [isNewQuiz, setIsNewQuiz] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null); /// 파일선택시 플래그
+
+  const handlePDFUpload = async () => {
+    if (!uploadFile) {
+      console.error('업로드할 파일이 없습니다');
+      return;
+    }
+    setIsPreview(false);
+    if (isResponse) {
+      setIsTopicCards(true);
+    } else {
+      // 분석이 완료되지 않은 경우 (!isResponse)
+      setIsLoading(true);
+    }
+
+    const formData = new FormData();
+    formData.append('uploadFile', uploadFile);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await axios.post(
+        'http://localhost:4000/api/analyze-file',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }
+      );
+      // 퀴즈 결과 처리
+
+      setIsResponse(true);
+      setIsNewQuiz(true);
+      setTopics(response.data.result.topics);
+
+      console.log('LLM 결과 주제 : ', response.data.result.topics);
+      console.log('response.data:', response.data);
+      console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
+    } catch (error) {
+      console.error('PDF 업로드 실패:', error);
+      console.error('에러 응답:', error.response?.data);
+      console.error('에러 상태:', error.response?.status);
+      setIsLoading(false);
+      alert('PDF 업로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
 
   const countPending = async () => {
     // 최초 로그인시 동작
@@ -157,6 +208,7 @@ function App() {
     console.log('response.data:', response.data);
     console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
   };
+
   const handleEndQuiz = async () => {
     console.log('종료 클릭');
     // 언마운트할 내용들.
@@ -184,9 +236,6 @@ function App() {
     setSelectedTopic(topic);
 
     const foundTopic = topics.find(element => element.category === category);
-    // const foundTopic = pendingList.find(
-    //   element => element.category === category
-    // );
     console.log(foundTopic);
     if (foundTopic) {
       const questionsLength = foundTopic.questions.length;
@@ -274,8 +323,8 @@ function App() {
         <div className=" absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
           <div className="text-right m-10">
             <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
-              <button
-                className="absolute top-4 right-5 bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex items-center gap-2"
+              <button // 홈버튼
+                className="absolute top-4 right-5 bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex hover:scale-110 transform items-center gap-2"
                 onClick={() => {
                   window.location.href = '/';
                 }}
@@ -317,7 +366,7 @@ function App() {
               {showPendingButton && isPendingQuestion > 0 && !selectedTopic && (
                 <button
                   onClick={handleShowTopics}
-                  className="bg-white text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200"
+                  className="bg-white text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
                 >
                   진행중인 퀴즈 {isPendingQuestion}개
                 </button>
@@ -339,9 +388,9 @@ function App() {
               </div>
             </div>
 
-            <div className="text-center py-12">
+            {/* <div className="text-center">
               <h1 className="text-5xl font-bold text-blue-600 mb-2">AI 퀴즈</h1>
-            </div>
+            </div> */}
           </div>
         ) : (
           <div className="fixed inset-0 z-50">
@@ -404,8 +453,8 @@ function App() {
                 {/* 상단 색상 바 */}
                 <div className="h-2 bg-gradient-to-r from-orange-400 via-emerald-400 via-yellow-300 to-purple-400"></div>
 
-                <div className="p-8">
-                  <div className="text-center mb-8">
+                <div className="w-[600px] h-[800px] p-5">
+                  <div className="text-center mb-2">
                     {/* 아이콘 */}
                     <div className="inline-flex items-center justify-center w-20 h-20 mb-6">
                       <div className="absolute w-20 h-20 bg-gradient-to-br from-yellow-400/30 to-orange-500/30 rounded-full animate-pulse"></div>
@@ -415,19 +464,19 @@ function App() {
                     </div>
                     {/* 제목 */}
                     <h3 className="text-3xl font-bold text-gray-800 mb-3">
-                      새 퀴즈{' '}
+                      퀴즈{' '}
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500">
                         만들기
                       </span>
                     </h3>
                     {/* 설명 */}
                     <div>
-                      <p className="text-gray-600 text-lg max-w-md mx-auto">
-                        클립보드의 내용을 붙여넣고{' '}
-                        <span className="font-semibold text-orange-500">
-                          AI
-                        </span>
-                        가 퀴즈를 생성합니다.
+                      <p className="text-gray-600 text-lg max-w-md mx-auto flex items-center justify-center">
+                        ① 클립보드 복사 붙여넣기&nbsp;
+                      </p>
+
+                      <p className="text-gray-600 text-lg max-w-md mx-auto flex items-center justify-center">
+                        ② PDF 파일을 업로드하기&nbsp;
                       </p>
                       <div className="flex justify-center gap-2 mt-4">
                         <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
@@ -438,6 +487,8 @@ function App() {
                   </div>
 
                   <ClipboardPreview
+                    onSendFile={handlePDFUpload}
+                    setUploadFile={setUploadFile}
                     analyzeClipboard={analyzeClipboard}
                     isLoading={isLoading}
                     onSubmit={handleClipBoardSumbit}
@@ -469,9 +520,7 @@ function App() {
             </div>
 
             {/* 텍스트 */}
-            <h3 className="text-2xl font-bold  mb-2">
-              AI가 퀴즈를 만들고 있어요
-            </h3>
+            <h3 className="text-2xl font-bold  mb-2">퀴즈를 만들고 있어요</h3>
             <p>잠시만 기다려주세요...</p>
 
             {/* 프로그레스 바 */}

@@ -3,6 +3,7 @@ backend/python-server/venv/
 backend/python-server/__pycache__/
 backend/node-server/.env
 backend/node-server/node_modules/
+frontend/.env
 .DS_Store
 _jpype.*
 *.log
