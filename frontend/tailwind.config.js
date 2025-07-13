@@ -5,4 +5,9 @@ export default {
     extend: {},
   },
   plugins: [],
+  safelist: [
+    {
+      pattern: /bg-[a-z]+-500\/70/,
+    },
+  ],
 };

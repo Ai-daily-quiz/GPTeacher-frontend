@@ -7,6 +7,7 @@ import { ModeSelect } from './Button/ModeDropDown';
 export const ClipboardPreview = ({
   analyzeClipboard,
   setUploadFile,
+  onSubmit,
   onSendFile,
 }) => {
   const [fileName, setFileName] = useState(null);
@@ -17,6 +18,9 @@ export const ClipboardPreview = ({
   const inputRef = useRef(null);
 
   const myClipBoard = navigator.clipboard;
+  const handleClipBoard = () => {
+    onSubmit();
+  };
 
   const handlePreview = async () => {
     // 미리보기 버튼
@@ -81,7 +85,7 @@ export const ClipboardPreview = ({
       <div className="text-right mr-8 mt-4">
         {showClipboard && preview && (
           <button
-            onClick={onSendFile}
+            onClick={handleClipBoard}
             className="
                 text-right text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500
                 px-3 py-1.5 rounded-full text-sm font-md shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
