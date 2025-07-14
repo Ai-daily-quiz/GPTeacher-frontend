@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import TimeBar from '../ProgressBar/ProgressBar';
 
 export const Quiz = ({
   quizMode,
   clickEnd,
   selectedTopic,
+  setSelectedTopic,
   setIsTopicComplete,
   onClickSubmit,
   totalQuestion,
@@ -11,11 +13,12 @@ export const Quiz = ({
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+
   const correctAnswer = Number(
     selectedTopic.questions[questionIndex].correct_answer
   );
   const dbResult = selectedTopic.questions[questionIndex].result;
-
   const getOptionStyle = index => {
     if (!isSubmitted) {
       return 'bg-white border border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer transform transition-all hover:scale-[1.02] hover:shadow-md';
@@ -44,10 +47,12 @@ export const Quiz = ({
       selectedAnswer === correctAnswer ? 'pass' : 'fail',
       questionIndex,
       selectedTopic.questions.length - 1,
-      dbResult
+      dbResult,
+      quizMode
     );
     const nextIndex = questionIndex + 1;
     if (nextIndex >= selectedTopic.questions.length) {
+      setIsCompleted(true);
       if (dbResult !== 'fail') {
         setIsTopicComplete(true);
       }
@@ -59,6 +64,15 @@ export const Quiz = ({
     setQuestionIndex(nextIndex);
   };
 
+  useEffect(() => {
+    if (isCompleted) {
+      // 완료 처리 로직
+      setTimeout(() => {
+        setSelectedTopic(null);
+      }, 1000);
+    }
+  }, [isCompleted]);
+
   return (
     <div className="w-[650px] mx-auto relative z-30">
       <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
@@ -66,8 +80,8 @@ export const Quiz = ({
         <div className="bg-gradient-to-r from-orange-400 to-purple-500 p-6 text-white">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold">{questionIndex + 1}</span>
-              <span className="text-lg opacity-80">/ {totalQuestion}</span>
+              <span className="text-4xl font-bold">{questionIndex + 1}</span>
+              <span className="text-xl opacity-80">/ {totalQuestion}</span>
             </div>
             <button
               className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-all"
@@ -89,18 +103,13 @@ export const Quiz = ({
               종료하기
             </button>
           </div>
-
-          {/* 진행 바 */}
-          <div className="w-full bg-white/20 rounded-full h-2">
-            <div
-              className="bg-white rounded-full h-2 transition-all duration-500"
-              style={{
-                width: `${((questionIndex + 1) / totalQuestion) * 100}%`,
-              }}
-            />
-          </div>
         </div>
-
+        {/* 프로그래스 바 */}
+        <TimeBar
+          isSubmitted={isSubmitted}
+          questionIndex={questionIndex}
+          handleAnswer={handleAnswer}
+        />
         <div className="p-8">
           {/* 카테고리 */}
           <div className="inline-flex items-center gap-2  text-gray-900 px-4 py-2 rounded-full text-2xl font-medium mb-6">
@@ -182,7 +191,7 @@ export const Quiz = ({
           {isSubmitted && (
             <div className="flex justify-end">
               <button
-                className="flex items-center justify-center w-[80px] h-[40px] bg-gradient-to-r from-orange-400 to-purple-500 hover:from-orange-400 hover:to-purple-500 text-white py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-[1.02]"
+                className="flex items-center justify-center w-[80px] h-[40px] bg-gradient-to-r from-orange-400 to-purple-500 hover:from-orange-400 hover:to-purple-500 text-white py-4 rounded-xl font-semibold text-lg transition-all transform hover:scale-[1.05]"
                 onClick={() => moveNextQuestion()}
               >
                 {questionIndex === selectedTopic.questions.length - 1

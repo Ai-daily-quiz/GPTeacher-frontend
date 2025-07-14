@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { TopicCard } from './TopicCard/TopicCard';
 
 export const TopicCards = ({
   topics,
@@ -16,7 +15,6 @@ export const TopicCards = ({
   };
 
   const getTopicCardColor = quizMode => {
-    console.log('🟢 quizMode : ', quizMode);
     if (quizMode === 'incorrect') {
       return 'red';
     } else {
@@ -31,8 +29,8 @@ export const TopicCards = ({
       blur: 'bg-gradient-to-br from-red-300 to-red-600',
     },
     blue: {
-      gradient: 'from-blue-400 to-blue-600',
-      blur: 'bg-gradient-to-br from-blue-300 to-blue-600',
+      gradient: 'from-cyan-400 to-cyan-600',
+      blur: 'bg-gradient-to-br from-cyan-300 to-cyan-600',
     },
   };
 

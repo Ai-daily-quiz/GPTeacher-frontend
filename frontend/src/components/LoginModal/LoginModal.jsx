@@ -39,7 +39,7 @@ const LoginModal = ({ user }) => {
     return (
       <button
         onClick={handleLogout}
-        className="bg-white text-gray-700 px-4 py-2.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
+        className="bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
       >
         로그아웃
       </button>
