@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from './Button/Button';
 
 export const MyDropzone = ({ setUploadFile, onSendFile }) => {
   const [file, setFile] = useState(null);
@@ -120,7 +119,6 @@ export const MyDropzone = ({ setUploadFile, onSendFile }) => {
                 onClick={onSendFile}
                 className="
                 text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-500
-                
                 px-3 py-1.5 rounded-full text-sm font-md shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
               >
                 퀴즈 만들기

@@ -7,6 +7,8 @@ import { Quiz } from './components/Quiz/Quiz';
 import LoginModal from './components/LoginModal/LoginModal';
 import supabase from './supabase';
 import TimeBar from './components/ProgressBar/ProgressBar';
+import { toast, ToastContainer } from 'react-toastify';
+import './toast.css';
 
 function App() {
   const [isPreview, setIsPreview] = useState(false);
@@ -26,6 +28,7 @@ function App() {
   const [isNewQuiz, setIsNewQuiz] = useState(false);
   const [uploadFile, setUploadFile] = useState(null); /// 파일선택시 플래그
   const [quizMode, setQuizMode] = useState(null);
+  const [isLoginModal, setIsLoginModal] = useState(null);
 
   const handlePDFUpload = async () => {
     if (!uploadFile) {
@@ -48,14 +51,15 @@ function App() {
         data: { session },
       } = await supabase.auth.getSession();
 
+      const headers = session?.access_token
+        ? { Authorization: `Bearer ${session?.access_token}` }
+        : {};
+
       const response = await axios.post(
         'http://localhost:4000/api/analyze-file',
         formData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${session?.access_token}`,
-          },
+          headers,
         }
       );
       // 퀴즈 결과 처리
@@ -72,7 +76,10 @@ function App() {
       console.error('에러 응답:', error.response?.data);
       console.error('에러 상태:', error.response?.status);
       setIsLoading(false);
-      alert('PDF 업로드에 실패했습니다. 다시 시도해주세요.');
+      // <Snackbar open={!!error} autoHideDuration={6000}>
+      //   <Alert severity="error">{error.response.data.message}</Alert>
+      // </Snackbar>;
+      toast.error(error.response.data.message);
     }
   };
 
@@ -264,13 +271,16 @@ function App() {
       data: { session },
     } = await supabase.auth.getSession();
     // const session = await supabase.auth.getSession();
+
+    const headers = session?.access_token
+      ? { Authorization: `Bearer ${session.access_token}` }
+      : {};
+
     const response = await axios.post(
       'http://localhost:4000/api/analyze',
       payload,
       {
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+        headers,
       }
     );
     setIsResponse(true);
@@ -322,6 +332,15 @@ function App() {
       console.log('questionsLength :', questionsLength);
       setTotalQuestion(questionsLength);
     }
+  };
+
+  const handleLoginModal = () => {
+    console.log('로그인 모달');
+    setIsLoginModal(true);
+  };
+
+  const moveHome = () => {
+    window.location.href = '/';
   };
 
   useEffect(() => {
@@ -411,9 +430,7 @@ function App() {
             <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
               <button // 홈버튼
                 className="absolute top-4 right-5 bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex hover:scale-110 transform items-center gap-2"
-                onClick={() => {
-                  window.location.href = '/';
-                }}
+                onClick={moveHome}
               >
                 <svg
                   className="w-7 h-7"
@@ -441,7 +458,6 @@ function App() {
       </div>
 
       {/* 로그인 하지 않은 경우에만 배경을 반투명하게 */}
-      {!user && <div className="absolute inset-0 bg-white/50 z-30"></div>}
 
       <div className="container mx-auto px-4 py-8">
         {user ? (
@@ -462,6 +478,7 @@ function App() {
                   />
                 </button>
               )}
+
               {showIncorrectButton &&
                 isIncorrectQuestion > 0 &&
                 !selectedTopic && (
@@ -495,56 +512,88 @@ function App() {
             </div>
           </div>
         ) : (
-          <div className="fixed inset-0 z-50">
-            {/* 배경 - 첨부 이미지처럼 4분할 컬러 영역 */}
-            <div className="absolute inset-0">
-              {/* 좌측 상단 - 오렌지 영역 */}
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-orange-400 opacity-70"></div>
+          <div>
+            <div className="relative z-20">
+              {/* 우측 상단에 고정된 헤더 */}
+              <div className="fixed top-4 right-4 flex items-center gap-3 z-50">
+                <button
+                  onClick={handleLoginModal}
+                  className="flex items-center bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
+                >
+                  로그인
+                </button>
 
-              {/* 우측 상단 - 민트/에메랄드 영역 */}
-              <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70"></div>
-
-              {/* 우측 하단 - 노란색 영역 */}
-              <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-300 opacity-70"></div>
-
-              {/* 좌측 하단 - 보라색 영역 */}
-              <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-400 opacity-70"></div>
-            </div>
-
-            {/* 로그인 모달 - 중앙 정렬 */}
-            <div className="relative flex items-center justify-center h-full">
-              <div className="bg-white rounded-2xl shadow-2xl p-8 text-center w-[30%] h-[35%] min-w-[320px] max-w-[500px] mx-auto border border-gray-200">
-                <div className="mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <svg
-                      className="w-10 h-10 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-xl text-gray-700 font-medium mb-4">
-                    로그인이 필요합니다
-                  </p>
-                  <p className="text-gray-500 mb-6">
-                    퀴즈를 시작하려면 먼저 로그인해주세요
-                  </p>
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md">
+                  <img src="/assets/default-profile.png" alt="" />
                 </div>
-                <LoginModal user={user} />
               </div>
             </div>
           </div>
         )}
       </div>
+      {isLoginModal && (
+        <div className="fixed inset-0 z-50">
+          {/* 배경 - 첨부 이미지처럼 4분할 컬러 영역 */}
+          <div className="absolute inset-0">
+            {/* 좌측 상단 - 오렌지 영역 */}
+            <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-orange-400 opacity-70"></div>
+
+            {/* 우측 상단 - 민트/에메랄드 영역 */}
+            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70"></div>
+
+            {/* 우측 하단 - 노란색 영역 */}
+            <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-300 opacity-70"></div>
+
+            {/* 좌측 하단 - 보라색 영역 */}
+            <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-400 opacity-70"></div>
+          </div>
+
+          {/* 로그인 모달 - 중앙 정렬 */}
+          <div className="relative flex items-center justify-center h-full">
+            <div className="relative bg-white rounded-2xl shadow-2xl p-8 text-center w-[30%] h-[35%] min-w-[320px] max-w-[500px] mx-auto border border-gray-200 flex flex-col justify-center">
+              <button
+                onClick={() => setIsLoginModal(false)}
+                className="absolute bg-transparent top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-0 border-0 outline-none focus:outline-none"
+              >
+                <svg
+                  className="w-7 h-7"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              <div className="mb-6 ">
+                <div className="flex items-center justify-center">
+                  <img
+                    src="/assets/default-profile.png"
+                    className="w-20 h-20"
+                    alt=""
+                  />
+                </div>
+                <p className="text-xl text-gray-700 font-medium mt-4 mb-4">
+                  로그인이 필요합니다
+                </p>
+                <p className="text-gray-500 ">
+                  퀴즈를 시작하려면 먼저 로그인해주세요
+                </p>
+              </div>
+              <LoginModal user={user} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4">
-        {!selectedTopic && !isTopicCards && isPreview && (
+        {((!user && !isTopicCards && !isLoading && !isLoginModal) ||
+          (!selectedTopic && !isTopicCards && isPreview && !isLoading)) && (
           <div className="animate-fadeIn max-w-4xl mx-auto relative z-20">
             <div className="relative">
               {/* 배경 블러 효과 */}
@@ -662,6 +711,13 @@ function App() {
           </div>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+      />
     </div>
   );
 }

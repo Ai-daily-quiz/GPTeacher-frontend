@@ -50,11 +50,11 @@ def generate_quiz(text, user_id, formatted_date):
          **중요 다음 텍스트를 분석해서 적합한 카테고리를 2개 찾아줘.
         찾은 카테고리들은 겹치지 않게 서로 다른 카테고리들로만 골라줘 **
 
-        카테고리 주제 수 : 서로 다른 4개
+        카테고리 주제 수 : 서로 다른 2개
         주제당 퀴즈 문제 수 : 2개
             - 카테고리 주제 당 ox 문제 수 : 1개
             - 카테고리 주제 당 multiple a문제 수 : 1개
-        => 전체 총 question 퀴즈 문제 수 8개
+        => 전체 총 question 퀴즈 문제 수 4개
 
         카테고리 분류기준 : {category_ref}**
 
@@ -330,12 +330,17 @@ def submit_quiz():
 @app.route("/api/analyze-file", methods=["POST"])
 def analyze_file():
     auth_header = request.headers.get("Authorization", "")
-    token = auth_header.replace("Bearer ", "")
-    userInfo = supabase.auth.get_user(token)
-    user_id = userInfo.user.id
+    user_id = None
 
-    if not user_id:
-        return jsonify({"error": "Invalid token"}), 401
+    if auth_header:
+        try:
+            token = auth_header.replace("Bearer ", "")
+            userInfo = supabase.auth.get_user(token)
+            user_id = userInfo.user.id
+            print(f"User ID: {user_id}")  # 디버깅용
+        except Exception as e:
+            print(f"Auth error: {e}")  # 토큰 검증 실패 로그
+            user_id = None
 
     try:
         now = datetime.now()
@@ -357,7 +362,7 @@ def analyze_file():
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
         # 배치 삽입
-        if quiz_list:
+        if quiz_list and user_id:
             supabase.table("quizzes").insert(quiz_list).execute()
 
         return jsonify(
@@ -372,11 +377,16 @@ def analyze_file():
 @app.route("/api/analyze", methods=["POST"])
 def analyze_text():
     auth_header = request.headers.get("Authorization", "")
-    token = auth_header.replace("Bearer ", "")
-    userInfo = supabase.auth.get_user(token)
-    user_id = userInfo.user.id
-    if not user_id:
-        return jsonify({"error": "Invalid token"}), 401
+
+    if auth_header:
+        try:
+            token = auth_header.replace("Bearer ", "")
+            userInfo = supabase.auth.get_user(token)
+            user_id = userInfo.user.id
+            print(f"User ID: {user_id}")  # 디버깅용
+        except Exception as e:
+            print(f"Auth error: {e}")  # 토큰 검증 실패 로그
+            user_id = None
 
     try:
         request_data = request.get_json()
@@ -392,7 +402,7 @@ def analyze_text():
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
         # 배치 삽입
-        if quiz_list:
+        if quiz_list and user_id:
             supabase.table("quizzes").insert(quiz_list).execute()
 
         return jsonify(
