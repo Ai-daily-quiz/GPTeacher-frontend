@@ -5,7 +5,7 @@ const LoginModal = ({ user }) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin,
         queryParams: {
           prompt: 'select_account',
         },
@@ -19,7 +19,7 @@ const LoginModal = ({ user }) => {
       provider: 'kakao',
       options: {
         scopes: ['profile_nickname', 'profile_image'],
-        redirectTo: window.location.origin,
+        redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin,
         queryParams: {
           prompt: 'select_account',
         },

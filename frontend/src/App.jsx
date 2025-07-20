@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { ClipboardPreview } from './components/ClipboardPreview/ClipboardPreview';
-
 import { TopicCards } from './components/TopicCards/TopicCards';
 import axios from 'axios';
 import { Quiz } from './components/Quiz/Quiz';
 import LoginModal from './components/LoginModal/LoginModal';
 import supabase from './supabase';
-import TimeBar from './components/ProgressBar/ProgressBar';
 import { toast, ToastContainer } from 'react-toastify';
 import './toast.css';
 
@@ -39,7 +37,6 @@ function App() {
     if (isResponse) {
       setIsTopicCards(true);
     } else {
-      // 분석이 완료되지 않은 경우 (!isResponse)
       setIsLoading(true);
     }
 
@@ -76,9 +73,6 @@ function App() {
       console.error('에러 응답:', error.response?.data);
       console.error('에러 상태:', error.response?.status);
       setIsLoading(false);
-      // <Snackbar open={!!error} autoHideDuration={6000}>
-      //   <Alert severity="error">{error.response.data.message}</Alert>
-      // </Snackbar>;
       toast.error(error.response.data.message);
     }
   };
@@ -270,7 +264,6 @@ function App() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    // const session = await supabase.auth.getSession();
 
     const headers = session?.access_token
       ? { Authorization: `Bearer ${session.access_token}` }
@@ -286,10 +279,6 @@ function App() {
     setIsResponse(true);
     setIsNewQuiz(true);
     setTopics(response.data.result.topics);
-    // setTotalQuestion(response.data.total_question);
-    console.log('LLM 결과 주제 : ', response.data.result.topics);
-    console.log('response.data:', response.data);
-    console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
   };
 
   const handleEndQuiz = async quizMode => {
@@ -463,14 +452,15 @@ function App() {
         {user ? (
           <div className="relative z-20">
             {/* 우측 상단에 고정된 헤더 */}
-            <div className="fixed top-4 right-4 flex items-center gap-3 z-50">
+            <div className="fixed top-4 flex flex-col-reverse lg:flex-row right-4 flex items-center gap-3 z-50">
               {/* 진행중인 퀴즈 버튼 */}
               {showPendingButton && isPendingQuestion > 0 && !selectedTopic && (
                 <button
                   onClick={() => handleShowTopics('pending')}
                   className="flex items-center bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
                 >
-                  진행&nbsp;
+                  <span className="hidden xl:block lg:hidden">진행 &nbsp;</span>
+
                   <img
                     src="/assets/quiz-icon-cyan.png"
                     className="w-6"
@@ -479,6 +469,7 @@ function App() {
                 </button>
               )}
 
+              {/* 틀린 퀴즈 버튼 */}
               {showIncorrectButton &&
                 isIncorrectQuestion > 0 &&
                 !selectedTopic && (
@@ -486,7 +477,10 @@ function App() {
                     onClick={() => handleShowTopics('incorrect')}
                     className="flex items-center bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
                   >
-                    틀린 &nbsp;
+                    <span className="hidden xl:block lg:hidden">
+                      틀린 &nbsp;
+                    </span>
+
                     <img
                       src="/assets/quiz-icon-red.png"
                       className="w-6"
@@ -604,7 +598,7 @@ function App() {
                 {/* 상단 색상 바 */}
                 <div className="h-2 bg-gradient-to-r from-orange-400 via-emerald-400 via-yellow-300 to-purple-400"></div>
 
-                <div className="w-[600px] h-[800px] p-5">
+                <div className="w-[300px] h-[800px] lg:w-[450px] h-[800px] xl:w-[600px] h-[800px] p-5">
                   <div className="text-center mb-2">
                     {/* 아이콘 */}
                     <div className="inline-flex items-center justify-center w-20 h-20 mb-6">

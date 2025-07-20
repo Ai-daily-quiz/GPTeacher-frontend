@@ -26,30 +26,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.post("/api/classify", async (req, res) => {
-  try {
-    const { text } = req.body;
-
-    if (!text) {
-      return res.status(400).json({ error: "Text is required" });
-    }
-
-    // Python 서버로 전달
-    const response = await axios.post("http://localhost:5001/classify", {
-      text: text,
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.log("🔴 Python server error ");
-    console.error("Python server error:", error.message);
-    res.status(500).json({
-      error: "Failed to connect to Python server",
-      details: error.message,
-    });
-  }
-});
-
 app.get("/api/quiz/count-pending", async (req, res) => {
   try {
     const response = await axios.get(

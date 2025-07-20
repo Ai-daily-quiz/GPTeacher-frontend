@@ -31,7 +31,13 @@ export const MyDropzone = ({ setUploadFile, onSendFile }) => {
           <div
             {...getRootProps()}
             className={`
-                border-2 border-dashed rounded-lg p-[110px]  text-center cursor-pointer
+                border-2 border-dashed rounded-lg
+                p-6
+                sm:p-8
+                md:p-10
+                lg:p-15
+                xl:p-20
+                text-center cursor-pointer
                 transition-all duration-200 relative
                 ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
               `}
@@ -66,7 +72,17 @@ export const MyDropzone = ({ setUploadFile, onSendFile }) => {
               파일 선택
             </button>
 
-            <p className="text-gray-500">또는 파일을 여기로 드래그하세요</p>
+            <p
+              className="flex justify-center
+            text-[10px]
+            sm:text-[10px]
+            md:text-[13px]
+            lg:text-[16px]
+            xl:text-[20px]
+            whitespace-nowrap text-gray-500"
+            >
+              <span>또는 파일을 여기로 드래그하세요</span>
+            </p>
           </div>
 
           {/* 업로드된 파일 표시 */}
@@ -87,7 +103,15 @@ export const MyDropzone = ({ setUploadFile, onSendFile }) => {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="text-gray-700 mr-1">{file.name}</span>
+                <span
+                  className="
+                text-[12px]
+                lg:text-lg
+
+                text-gray-700 mr-1"
+                >
+                  {file.name}
+                </span>
                 <button
                   className="p-0 ml-1.5 bg-blue-50"
                   onClick={handleDeleteFile}
@@ -107,7 +131,11 @@ export const MyDropzone = ({ setUploadFile, onSendFile }) => {
                     />
                   </svg>
                 </button>
-                <span className="text-gray-500 text-sm ml-auto">
+                <span
+                  className="text-gray-500
+                text-sm
+                ml-auto"
+                >
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </span>
               </div>

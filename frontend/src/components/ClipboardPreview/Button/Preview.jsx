@@ -12,7 +12,7 @@ export const Preview = ({ preview, showClipboard, onClickPreview }) => {
         </span>
       </div>
       <div className="p-4 overflow-auto h-[calc(100%-40px)] bg-white flex justify-center items-center ">
-        <pre className="text-gray-700 text-sm font-['SF Mono','Monaco','monospace']">
+        <pre className="text-gray-700 text-[9px] md:text-[9px] lg:text-xs 2xl:text-md  font-['SF Mono','Monaco','monospace']">
           {preview}
           <div
             onClick={onClickPreview}

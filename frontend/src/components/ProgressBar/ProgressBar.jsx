@@ -7,10 +7,6 @@ export default function TimeBar({ isSubmitted, questionIndex, handleAnswer }) {
   const intervalRef = useRef(null);
   const startRef = useRef(0);
 
-  // 답 제출
-  // 프로그래스바 멈춤
-  //
-
   const quizLimitSec = 20;
   useEffect(() => {
     // 1️⃣ 다음 문제로 넘어가거나, 2️⃣ 답을 제출하거나
