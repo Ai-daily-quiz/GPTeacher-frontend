@@ -8,14 +8,20 @@ from datetime import datetime
 from supabase import create_client, Client
 import jwt
 from cachetools import TTLCache
-import PyPDF2
+import pdfplumber
 
 load_dotenv()
 app = Flask(__name__)
 CORS(app)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+gemini_key = os.getenv("GEMINI_API_KEY")
+if not gemini_key:
+    raise ValueError("GEMINI_API_KEY 환경변수를 설정하세요")
+genai.configure(api_key=gemini_key)
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_SERVICE_KEY")
+if not url or not key:
+    raise ValueError("SUPABASE 환경변수를 설정하세요")
+
 supabase: Client = create_client(url, key)
 
 model = genai.GenerativeModel("gemini-2.0-flash")
@@ -353,12 +359,14 @@ def analyze_file():
             )
 
         file = request.files["file"]
-        reader = PyPDF2.PdfReader(file)
         all_text = ""
-        for page in reader.pages:
-            all_text += page.extract_text()
+        with pdfplumber.open(file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    all_text += page_text + "\n"
 
-        text = preprocessing_clipBoard_text(all_text)
+        text = preprocessing_text(all_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
         # 배치 삽입
@@ -399,7 +407,7 @@ def analyze_text():
 
         input_text = request_data["text"]
         # 데이터 클렌징 위치
-        text = preprocessing_clipBoard_text(input_text)
+        text = preprocessing_text(input_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
         # 배치 삽입
@@ -416,7 +424,7 @@ def analyze_text():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-def preprocessing_clipBoard_text(text):
+def preprocessing_text(text):
     original_length = len(text)
     while "  " in text:  # 2공백 => 1공백
         text = text.replace("  ", " ")
@@ -455,6 +463,7 @@ def preprocessing_ai_response(prompt):
     return result
 
 
+application = app
 if __name__ == "__main__":
     print("Python 서버 시작중...")
     app.run(debug=True, port=5001)

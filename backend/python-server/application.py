@@ -359,7 +359,7 @@ def analyze_file():
         for page in reader.pages:
             all_text += page.extract_text()
 
-        text = preprocessing_clipBoard_text(all_text)
+        text = preprocessing_text(all_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
         # 배치 삽입
@@ -400,7 +400,7 @@ def analyze_text():
 
         input_text = request_data["text"]
         # 데이터 클렌징 위치
-        text = preprocessing_clipBoard_text(input_text)
+        text = preprocessing_text(input_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
         # 배치 삽입
@@ -417,7 +417,7 @@ def analyze_text():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-def preprocessing_clipBoard_text(text):
+def preprocessing_text(text):
     original_length = len(text)
     while "  " in text:  # 2공백 => 1공백
         text = text.replace("  ", " ")

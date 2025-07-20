@@ -68,6 +68,7 @@ function App() {
       console.log('LLM 결과 주제 : ', response.data.result.topics);
       console.log('response.data:', response.data);
       console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
+      setUploadFile(null);
     } catch (error) {
       console.error('PDF 업로드 실패:', error);
       console.error('에러 응답:', error.response?.data);
