@@ -7,8 +7,11 @@ import LoginModal from './components/LoginModal/LoginModal';
 import supabase from './supabase';
 import { toast, ToastContainer } from 'react-toastify';
 import './toast.css';
+import { useRequestTypeStore } from './store/useRequestTypeStore';
 
 function App() {
+  const selectedMode = useRequestTypeStore(state => state.selectedMode);
+
   const [isPreview, setIsPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTopicCards, setIsTopicCards] = useState(false);
@@ -28,6 +31,13 @@ function App() {
   const [quizMode, setQuizMode] = useState(null);
   const [isLoginModal, setIsLoginModal] = useState(null);
 
+  const handleSortPDFtype = async () => {
+    if (selectedMode === 'pdf-text') {
+      handlePDFUpload();
+    } else if (selectedMode === 'pdf-ocr') {
+      handlePDFUploadOCR();
+    }
+  };
   const handlePDFUpload = async () => {
     if (!uploadFile) {
       console.error('업로드할 파일이 없습니다');
@@ -54,6 +64,56 @@ function App() {
 
       const response = await axios.post(
         'http://localhost:4000/api/analyze-file',
+        formData,
+        {
+          headers,
+        }
+      );
+      // 퀴즈 결과 처리
+
+      setIsResponse(true);
+      setIsNewQuiz(true);
+      setTopics(response.data.result.topics);
+
+      console.log('LLM 결과 주제 : ', response.data.result.topics);
+      console.log('response.data:', response.data);
+      console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
+      setUploadFile(null);
+    } catch (error) {
+      console.error('PDF 업로드 실패:', error);
+      console.error('에러 응답:', error.response?.data);
+      console.error('에러 상태:', error.response?.status);
+      setIsLoading(false);
+      toast.error(error.response.data.message);
+    }
+  };
+
+  const handlePDFUploadOCR = async () => {
+    if (!uploadFile) {
+      console.error('업로드할 파일이 없습니다');
+      return;
+    }
+    setIsPreview(false);
+    if (isResponse) {
+      setIsTopicCards(true);
+    } else {
+      setIsLoading(true);
+    }
+
+    const formData = new FormData();
+    formData.append('uploadFile', uploadFile);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers = session?.access_token
+        ? { Authorization: `Bearer ${session?.access_token}` }
+        : {};
+
+      const response = await axios.post(
+        'http://localhost:4000/api/analyze-ocr',
         formData,
         {
           headers,
@@ -633,7 +693,7 @@ function App() {
                   </div>
 
                   <ClipboardPreview
-                    onSendFile={handlePDFUpload}
+                    onSendFile={handleSortPDFtype}
                     setUploadFile={setUploadFile}
                     analyzeClipboard={analyzeClipboard}
                     isLoading={isLoading}

@@ -9,6 +9,8 @@ from supabase import create_client, Client
 import jwt
 from cachetools import TTLCache
 import pdfplumber
+import pytesseract
+from pdf2image import convert_from_bytes
 
 load_dotenv()
 app = Flask(__name__)
@@ -382,6 +384,57 @@ def analyze_file():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route("/api/analyze-ocr", methods=["POST"])
+def analyze_ocr():
+    auth_header = request.headers.get("Authorization", "")
+    user_id = None
+
+    if auth_header:
+        try:
+            token = auth_header.replace("Bearer ", "")
+            userInfo = supabase.auth.get_user(token)
+            user_id = userInfo.user.id
+            print(f"User ID: {user_id}")  # 디버깅용
+        except Exception as e:
+            print(f"Auth error: {e}")  # 토큰 검증 실패 로그
+            user_id = None
+
+    try:
+        now = datetime.now()
+        formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        if "file" not in request.files:
+            return (
+                jsonify({"error": "No file"}),
+                400,
+            )
+
+        file = request.files["file"]
+        pdf_bytes = file.read()
+        images = convert_from_bytes(pdf_bytes, dpi=300)
+        all_text = ""
+
+        for image in images:
+            text = pytesseract.image_to_string(image, lang="kor+eng")
+            all_text += text + "\n"
+
+        text_preprocessed = preprocessing_text(all_text)
+        print("🟢 text_preprocessed :", text_preprocessed)
+        quiz_list, result = generate_quiz(text_preprocessed, user_id, formatted_date)
+
+        # 배치 삽입
+        if quiz_list and user_id:
+            supabase.table("quizzes").insert(quiz_list).execute()
+
+        return jsonify(
+            {"success": True, "result": result, "total_question": len(quiz_list)}
+        )
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/api/analyze", methods=["POST"])
 def analyze_text():
     auth_header = request.headers.get("Authorization", "")
@@ -407,6 +460,7 @@ def analyze_text():
 
         input_text = request_data["text"]
         # 데이터 클렌징 위치
+
         text = preprocessing_text(input_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 

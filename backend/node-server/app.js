@@ -144,6 +144,49 @@ app.post(
   }
 );
 
+app.post(
+  "/api/analyze-ocr",
+  upload.single("uploadFile"),
+  async (req, res, next) => {
+    try {
+      const isMember = !!req.headers.authorization;
+      const uploadMBLimit = isMember ? 50 : 10;
+
+      if (req.file.size > uploadMBLimit * 1024 * 1024) {
+        const error = new multer.MulterError("LIMIT_FILE_SIZE");
+        error.message = `파일 크기는 최대 ${uploadMBLimit}MB까지 업로드 가능합니다.`;
+
+        fs.unlinkSync(req.file.path);
+        return next(error);
+      }
+      console.log("🟢 파일 정보:", req.file);
+      console.log("🟢 파일 정보:", req.file.size);
+      const formData = new FormData();
+      formData.append("file", fs.createReadStream(req.file.path));
+      formData.append("filename", req.file.originalname);
+
+      const headers = req.headers.authorization
+        ? { Authorization: req.headers.authorization, path: req.file.path }
+        : {};
+      const response = await axios.post(
+        "http://localhost:5001/api/analyze-ocr",
+        formData,
+        {
+          headers,
+        }
+      );
+
+      console.log("Python 서버 응답:", response.data);
+      fs.unlinkSync(req.file.path);
+      res.json(response.data);
+    } catch (error) {
+      // 분석 중 에러도 next 로 넘겨서 전역 에러 핸들러로
+      if (req.file?.path) fs.unlinkSync(req.file.path);
+      next(error);
+    }
+  }
+);
+
 app.post("/api/analyze", async (req, res) => {
   try {
     const { clipboard } = req.body;
