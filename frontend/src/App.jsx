@@ -8,10 +8,11 @@ import supabase from './supabase';
 import { toast, ToastContainer } from 'react-toastify';
 import './toast.css';
 import { useRequestTypeStore } from './store/useRequestTypeStore';
+import { EXPRESS_API_URL } from './config/api';
 
 function App() {
+  const isDev = import.meta.env.DEV;
   const selectedMode = useRequestTypeStore(state => state.selectedMode);
-
   const [isPreview, setIsPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTopicCards, setIsTopicCards] = useState(false);
@@ -32,11 +33,11 @@ function App() {
   const [isLoginModal, setIsLoginModal] = useState(null);
 
   const handleSortPDFtype = async () => {
-    if (selectedMode === 'pdf-text') {
-      handlePDFUpload();
-    } else if (selectedMode === 'pdf-ocr') {
-      handlePDFUploadOCR();
-    }
+    // if (selectedMode === 'pdf-text') {
+    handlePDFUpload();
+    // } else if (selectedMode === 'pdf-ocr') {
+    //   handlePDFUploadOCR();
+    // }
   };
   const handlePDFUpload = async () => {
     if (!uploadFile) {
@@ -63,7 +64,7 @@ function App() {
         : {};
 
       const response = await axios.post(
-        'http://localhost:4000/api/analyze-file',
+        isDev ? `${EXPRESS_API_URL}/api/analyze-file` : `/api/analyze-file`,
         formData,
         {
           headers,
@@ -113,10 +114,11 @@ function App() {
         : {};
 
       const response = await axios.post(
-        'http://localhost:4000/api/analyze-ocr',
+        isDev ? `${EXPRESS_API_URL}/api/analyze-ocr` : `/api/analyze-ocr`,
         formData,
         {
           headers,
+          timeout: 300000, // 5분 타임아웃
         }
       );
       // 퀴즈 결과 처리
@@ -139,14 +141,16 @@ function App() {
   };
 
   const countPending = async () => {
-    // 최초 로그인시 동작
+    // 최초 로그인 동작
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       const response = await axios.get(
-        'http://localhost:4000/api/quiz/count-pending',
+        isDev
+          ? `${EXPRESS_API_URL}/api/quiz/count-pending`
+          : `/api/quiz/count-pending`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -169,7 +173,9 @@ function App() {
       } = await supabase.auth.getSession();
 
       const response = await axios.get(
-        'http://localhost:4000/api/quiz/count-incorrect',
+        isDev
+          ? `${EXPRESS_API_URL}/api/quiz/count-incorrect`
+          : `/api/quiz/count-incorrect`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -216,7 +222,7 @@ function App() {
       } = await supabase.auth.getSession();
 
       const response = await axios.get(
-        'http://localhost:4000/api/quiz/incorrect',
+        isDev ? `${EXPRESS_API_URL}/api/quiz/incorrect` : `/api/quiz/incorrect`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -247,7 +253,7 @@ function App() {
       } = await supabase.auth.getSession();
 
       const response = await axios.get(
-        'http://localhost:4000/api/quiz/pending',
+        isDev ? `${EXPRESS_API_URL}/api/quiz/pending` : `/api/quiz/pending`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -295,7 +301,8 @@ function App() {
       } = await supabase.auth.getSession();
 
       const response = await axios.post(
-        'http://localhost:4000/api/quiz/submit',
+        isDev ? `${EXPRESS_API_URL}/api/quiz/submit` : `/api/quiz/submit`,
+
         {
           quizId: quizId,
           topicId: topicId,
@@ -331,7 +338,7 @@ function App() {
       : {};
 
     const response = await axios.post(
-      'http://localhost:4000/api/analyze',
+      isDev ? `${EXPRESS_API_URL}/api/analyze` : `/api/analyze`,
       payload,
       {
         headers,
@@ -470,35 +477,12 @@ function App() {
   return (
     <div className="min-h-screen relative">
       {/* 배경 - 4분할 컬러 영역 */}
-      <div className="fixed inset-0 w-[50vw] h-[100vh] left-[25vw]">
+      <div className="fixed inset-0 ">
         {/* 좌측 상단 - 오렌지 영역 */}
         <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-orange-400 opacity-70"></div>
 
         {/* 우측 상단 - 민트/에메랄드 영역 */}
-        <div className=" absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
-          <div className="text-right m-10">
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70">
-              <button // 홈버튼
-                className="absolute top-4 right-5 bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 flex hover:scale-110 transform items-center gap-2"
-                onClick={moveHome}
-              >
-                <svg
-                  className="w-7 h-7"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <div className=" absolute top-0 right-0 w-1/2 h-1/2 bg-emerald-400 opacity-70"></div>
 
         {/* 우측 하단 - 노란색 영역 */}
         <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-yellow-300 opacity-70"></div>
@@ -552,8 +536,27 @@ function App() {
 
               {/* 로그아웃 버튼 */}
               <LoginModal user={user} />
+              <button
+                className="bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
+                onClick={moveHome}
+              >
+                <svg
+                  className="w-7 h-7"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                  />
+                </svg>
+              </button>
 
               {/* 프로필 이미지 */}
+
               <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md">
                 <img
                   src={
@@ -576,6 +579,24 @@ function App() {
                   className="flex items-center bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
                 >
                   로그인
+                </button>
+                <button
+                  className="bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
+                  onClick={moveHome}
+                >
+                  <svg
+                    className="w-7 h-7"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
                 </button>
 
                 <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md">
@@ -601,46 +622,46 @@ function App() {
 
             {/* 좌측 하단 - 보라색 영역 */}
             <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-400 opacity-70"></div>
-          </div>
 
-          {/* 로그인 모달 - 중앙 정렬 */}
-          <div className="relative flex items-center justify-center h-full">
-            <div className="relative bg-white rounded-2xl shadow-2xl p-8 text-center w-[30%] h-[35%] min-w-[320px] max-w-[500px] mx-auto border border-gray-200 flex flex-col justify-center">
-              <button
-                onClick={() => setIsLoginModal(false)}
-                className="absolute bg-transparent top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-0 border-0 outline-none focus:outline-none"
-              >
-                <svg
-                  className="w-7 h-7"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            {/* 로그인 모달 - 중앙 정렬 */}
+            <div className="relative flex items-center justify-center h-full">
+              <div className="relative bg-white rounded-2xl shadow-2xl p-8 text-center w-[30%] h-[35%] min-w-[320px] max-w-[500px] mx-auto border border-gray-200 flex flex-col justify-center">
+                <button
+                  onClick={() => setIsLoginModal(false)}
+                  className="absolute bg-transparent top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-0 border-0 outline-none focus:outline-none"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-7 h-7"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
 
-              <div className="mb-6 ">
-                <div className="flex items-center justify-center">
-                  <img
-                    src="/assets/default-profile.png"
-                    className="w-20 h-20"
-                    alt=""
-                  />
+                <div className="mb-6 ">
+                  <div className="flex items-center justify-center">
+                    <img
+                      src="/assets/default-profile.png"
+                      className="w-20 h-20"
+                      alt=""
+                    />
+                  </div>
+                  <p className="text-xl text-gray-700 font-medium mt-4 mb-4">
+                    로그인이 필요합니다
+                  </p>
+                  <p className="text-gray-500 ">
+                    퀴즈를 시작하려면 먼저 로그인해주세요
+                  </p>
                 </div>
-                <p className="text-xl text-gray-700 font-medium mt-4 mb-4">
-                  로그인이 필요합니다
-                </p>
-                <p className="text-gray-500 ">
-                  퀴즈를 시작하려면 먼저 로그인해주세요
-                </p>
+                <LoginModal user={user} />
               </div>
-              <LoginModal user={user} />
             </div>
           </div>
         </div>

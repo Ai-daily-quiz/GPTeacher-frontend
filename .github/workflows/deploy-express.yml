@@ -1,0 +1,31 @@
+name: Deploy Express to AWS EB
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/node-server/**" # 이 폴더 변경시만 배포
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate deployment package
+        run: |
+          cd backend/node-server
+          zip -r ../../deploy.zip . -x '*.git*' 'node_modules/*' '.env'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: Quiz-app-staging-env
+          environment_name: Quiz-app-staging-env-env
+          version_label: ${{ github.sha }}
+          region: ${{ secrets.AWS_REGION }}
+          deployment_package: deploy.zip

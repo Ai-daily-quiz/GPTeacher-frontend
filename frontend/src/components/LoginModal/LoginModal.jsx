@@ -20,9 +20,6 @@ const LoginModal = ({ user }) => {
       options: {
         scopes: ['profile_nickname', 'profile_image'],
         redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin,
-        queryParams: {
-          prompt: 'select_account',
-        },
       },
     });
     if (error) console.error('로그인 에러:', error);

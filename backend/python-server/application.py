@@ -8,15 +8,23 @@ from datetime import datetime
 from supabase import create_client, Client
 import jwt
 from cachetools import TTLCache
-import PyPDF2
+import pdfplumber
+import pytesseract
+from pdf2image import convert_from_bytes
 
 load_dotenv()
 app = Flask(__name__)
-application = app
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 CORS(app)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+gemini_key = os.getenv("GEMINI_API_KEY")
+if not gemini_key:
+    raise ValueError("GEMINI_API_KEY 환경변수를 설정하세요")
+genai.configure(api_key=gemini_key)
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_SERVICE_KEY")
+if not url or not key:
+    raise ValueError("SUPABASE 환경변수를 설정하세요")
+
 supabase: Client = create_client(url, key)
 
 model = genai.GenerativeModel("gemini-2.0-flash")
@@ -46,18 +54,22 @@ def cache_get_topics():
     return cache["topics"]
 
 
+topics_ref, category_ref = cache_get_topics()
+
+
 def generate_quiz(text, user_id, formatted_date):
     prompt = f"""
-         **중요 다음 텍스트를 분석해서 적합한 카테고리를 2개 찾아줘.
+         **중요 다음 텍스트를 분석해서 적합한 카테고리를 6개 찾아줘.
         찾은 카테고리들은 겹치지 않게 서로 다른 카테고리들로만 골라줘 **
 
-        카테고리 주제 수 : 서로 다른 2개
+        카테고리 주제 수 : 서로 다른 6개
         주제당 퀴즈 문제 수 : 2개
             - 카테고리 주제 당 ox 문제 수 : 1개
             - 카테고리 주제 당 multiple a문제 수 : 1개
-        => 전체 총 question 퀴즈 문제 수 4개
+        => 전체 총 question 퀴즈 문제 수 12개
 
         카테고리 분류기준 : {category_ref}**
+        ** 제시하는 주제는 위 주제에서 벗어나지 않아야해**
 
         텍스트: {text[:MAX_TEXT_LENGTH]}
 
@@ -128,9 +140,6 @@ def generate_quiz(text, user_id, formatted_date):
             quiz_list.append(quiz_data)
 
     return quiz_list, result
-
-
-topics_ref, category_ref = cache_get_topics()
 
 
 def verify_token_and_get_uuid(token):
@@ -281,6 +290,7 @@ def get_incorrect_quiz():
         return jsonify({"error": str(e)}), 500
 
 
+###
 @app.route("/api/quiz/submit", methods=["POST"])
 def submit_quiz():
     auth_header = request.headers.get("Authorization", "")
@@ -289,7 +299,7 @@ def submit_quiz():
 
     data = request.get_json()
     if not data:
-        return jsonify({"error": "No data provieded"}), 400
+        return jsonify({"error": "No data provided"}), 400
     quiz_id = data.get("quizId")
     if len(quiz_id) > 50:
         return jsonify({"error": "Invalid quiz_id"}), 400
@@ -328,6 +338,7 @@ def submit_quiz():
         return jsonify({"error": str(e)}), 500
 
 
+###
 @app.route("/api/analyze-file", methods=["POST"])
 def analyze_file():
     auth_header = request.headers.get("Authorization", "")
@@ -354,10 +365,12 @@ def analyze_file():
             )
 
         file = request.files["file"]
-        reader = PyPDF2.PdfReader(file)
         all_text = ""
-        for page in reader.pages:
-            all_text += page.extract_text()
+        with pdfplumber.open(file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    all_text += page_text + "\n"
 
         text = preprocessing_text(all_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
@@ -373,6 +386,64 @@ def analyze_file():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/analyze-ocr", methods=["POST"])
+def analyze_ocr():
+    auth_header = request.headers.get("Authorization", "")
+    user_id = None
+
+    if auth_header:
+        try:
+            token = auth_header.replace("Bearer ", "")
+            userInfo = supabase.auth.get_user(token)
+            user_id = userInfo.user.id
+            print(f"User ID: {user_id}")  # 디버깅용
+        except Exception as e:
+            print(f"Auth error: {e}")  # 토큰 검증 실패 로그
+            user_id = None
+
+    try:
+        now = datetime.now()
+        formatted_date = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        if "file" not in request.files:
+            return (
+                jsonify({"error": "No file"}),
+                400,
+            )
+
+        file = request.files["file"]
+        pdf_bytes = file.read()
+        images = convert_from_bytes(pdf_bytes, dpi=300)
+        all_text = ""
+
+        for image in images:
+            text = pytesseract.image_to_string(image, lang="kor+eng")
+            all_text += text + "\n"
+
+        text_preprocessed = preprocessing_text(all_text)
+        print("🟢 text_preprocessed :", text_preprocessed)
+        quiz_list, result = generate_quiz(text_preprocessed, user_id, formatted_date)
+
+        # 배치 삽입
+        if quiz_list and user_id:
+            supabase.table("quizzes").insert(quiz_list).execute()
+
+        return jsonify(
+            {"success": True, "result": result, "total_question": len(quiz_list)}
+        )
+        pass
+
+    except Exception as e:
+        print(f"Error: {e}")
+        print(f"OCR Error: {str(e)}")
+        print(f"Error Type: {type(e).__name__}")
+        import traceback
+
+        traceback.print_exc()
+        return {"error": "OCR 처리 중 오류가 발생했습니다"}, 500
+        # return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/analyze", methods=["POST"])
@@ -399,7 +470,8 @@ def analyze_text():
             return jsonify({"error": "No text provided"}), 400
 
         input_text = request_data["text"]
-        # 데이터 클렌징 위치
+        ## 데이터 클렌징 위치
+
         text = preprocessing_text(input_text)
         quiz_list, result = generate_quiz(text, user_id, formatted_date)
 
@@ -410,13 +482,13 @@ def analyze_text():
         return jsonify(
             {"success": True, "result": result, "total_question": len(quiz_list)}
         )
-        # return jsonify({"success": True, "result": result})
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# 테스트
 def preprocessing_text(text):
     original_length = len(text)
     while "  " in text:  # 2공백 => 1공백
@@ -456,6 +528,7 @@ def preprocessing_ai_response(prompt):
     return result
 
 
+application = app
 if __name__ == "__main__":
     print("Python 서버 시작중...")
     app.run(debug=True, port=5001)

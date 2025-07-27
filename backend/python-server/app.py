@@ -14,6 +14,7 @@ from pdf2image import convert_from_bytes
 
 load_dotenv()
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 CORS(app)
 gemini_key = os.getenv("GEMINI_API_KEY")
 if not gemini_key:
@@ -53,18 +54,22 @@ def cache_get_topics():
     return cache["topics"]
 
 
+topics_ref, category_ref = cache_get_topics()
+
+
 def generate_quiz(text, user_id, formatted_date):
     prompt = f"""
-         **중요 다음 텍스트를 분석해서 적합한 카테고리를 2개 찾아줘.
+         **중요 다음 텍스트를 분석해서 적합한 카테고리를 6개 찾아줘.
         찾은 카테고리들은 겹치지 않게 서로 다른 카테고리들로만 골라줘 **
 
-        카테고리 주제 수 : 서로 다른 2개
+        카테고리 주제 수 : 서로 다른 6개
         주제당 퀴즈 문제 수 : 2개
             - 카테고리 주제 당 ox 문제 수 : 1개
             - 카테고리 주제 당 multiple a문제 수 : 1개
-        => 전체 총 question 퀴즈 문제 수 4개
+        => 전체 총 question 퀴즈 문제 수 12개
 
         카테고리 분류기준 : {category_ref}**
+        ** 제시하는 주제는 위 주제에서 벗어나지 않아야해**
 
         텍스트: {text[:MAX_TEXT_LENGTH]}
 
@@ -135,9 +140,6 @@ def generate_quiz(text, user_id, formatted_date):
             quiz_list.append(quiz_data)
 
     return quiz_list, result
-
-
-topics_ref, category_ref = cache_get_topics()
 
 
 def verify_token_and_get_uuid(token):
@@ -429,10 +431,17 @@ def analyze_ocr():
         return jsonify(
             {"success": True, "result": result, "total_question": len(quiz_list)}
         )
+        pass  # 추가했음
 
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        print(f"OCR Error: {str(e)}")
+        print(f"Error Type: {type(e).__name__}")
+        import traceback
+
+        traceback.print_exc()
+        return {"error": "OCR 처리 중 오류가 발생했습니다"}, 500
+        # return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/analyze", methods=["POST"])
@@ -471,13 +480,13 @@ def analyze_text():
         return jsonify(
             {"success": True, "result": result, "total_question": len(quiz_list)}
         )
-        # return jsonify({"success": True, "result": result})
 
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# 테스트
 def preprocessing_text(text):
     original_length = len(text)
     while "  " in text:  # 2공백 => 1공백

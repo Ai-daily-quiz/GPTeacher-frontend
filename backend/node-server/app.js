@@ -4,6 +4,7 @@ const axios = require("axios");
 const multer = require("multer");
 const fs = require("fs");
 const FormData = require("form-data");
+const { PYTHON_API_URL } = require("./config");
 
 const upload = multer({
   dest: "uploads/",
@@ -15,8 +16,8 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
 // 라우트 정의
 app.get("/", (req, res) => {
@@ -29,7 +30,7 @@ app.get("/", (req, res) => {
 app.get("/api/quiz/count-pending", async (req, res) => {
   try {
     const response = await axios.get(
-      "http://localhost:5001/api/quiz/count-pending",
+      `${PYTHON_API_URL}/api/quiz/count-pending`,
       {
         headers: req.headers,
       }
@@ -43,7 +44,7 @@ app.get("/api/quiz/count-pending", async (req, res) => {
 app.get("/api/quiz/count-incorrect", async (req, res) => {
   try {
     const response = await axios.get(
-      "http://localhost:5001/api/quiz/count-incorrect",
+      `${PYTHON_API_URL}/api/quiz/count-incorrect`,
       {
         headers: req.headers,
       }
@@ -56,7 +57,7 @@ app.get("/api/quiz/count-incorrect", async (req, res) => {
 
 app.get("/api/quiz/pending", async (req, res) => {
   try {
-    const response = await axios.get("http://localhost:5001/api/quiz/pending", {
+    const response = await axios.get(`${PYTHON_API_URL}/api/quiz/pending`, {
       headers: req.headers,
     });
     res.json(response.data);
@@ -67,12 +68,9 @@ app.get("/api/quiz/pending", async (req, res) => {
 
 app.get("/api/quiz/incorrect", async (req, res) => {
   try {
-    const response = await axios.get(
-      "http://localhost:5001/api/quiz/incorrect",
-      {
-        headers: req.headers,
-      }
-    );
+    const response = await axios.get(`${PYTHON_API_URL}/api/quiz/incorrect`, {
+      headers: req.headers,
+    });
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -83,7 +81,7 @@ app.get("/api/quiz/incorrect", async (req, res) => {
 app.post("/api/quiz/submit", async (req, res) => {
   try {
     const response = await axios.post(
-      "http://localhost:5001/api/quiz/submit",
+      `${PYTHON_API_URL}/api/quiz/submit`,
       req.body,
       { headers: req.headers }
     );
@@ -108,6 +106,11 @@ app.post(
     try {
       const isMember = !!req.headers.authorization;
       const uploadMBLimit = isMember ? 50 : 10;
+      console.log("📁 파일 수신:", {
+        name: req.file.originalname,
+        size: req.file.size,
+        sizeMB: (req.file.size / 1024 / 1024).toFixed(2) + "MB",
+      });
 
       if (req.file.size > uploadMBLimit * 1024 * 1024) {
         const error = new multer.MulterError("LIMIT_FILE_SIZE");
@@ -126,10 +129,13 @@ app.post(
         ? { Authorization: req.headers.authorization }
         : {};
       const response = await axios.post(
-        "http://localhost:5001/api/analyze-file",
+        `${PYTHON_API_URL}/api/analyze-file`,
         formData,
         {
           headers,
+          timeout: 300000,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
         }
       );
 
@@ -137,13 +143,69 @@ app.post(
       fs.unlinkSync(req.file.path);
       res.json(response.data);
     } catch (error) {
-      // 분석 중 에러도 next 로 넘겨서 전역 에러 핸들러로
       if (req.file?.path) fs.unlinkSync(req.file.path);
       next(error);
     }
   }
 );
+app.post(
+  "/api/analyze-file",
+  upload.single("uploadFile"),
+  async (req, res, next) => {
+    try {
+      console.log("📁 파일 정보:", {
+        name: req.file.originalname,
+        size: req.file.size,
+        sizeMB: (req.file.size / 1024 / 1024).toFixed(2) + "MB",
+      });
 
+      const formData = new FormData();
+      formData.append("file", fs.createReadStream(req.file.path));
+      formData.append("filename", req.file.originalname);
+
+      const headers = req.headers.authorization
+        ? { Authorization: req.headers.authorization }
+        : {};
+
+      console.log("🚀 Python 서버로 전송 시작...");
+      const startTime = Date.now();
+
+      try {
+        const response = await axios.post(
+          `${PYTHON_API_URL}/api/analyze-file`,
+          formData,
+          {
+            headers: {
+              ...formData.getHeaders(),
+              ...headers,
+            },
+            timeout: 300000, // 5분
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity,
+          }
+        );
+
+        const endTime = Date.now();
+        console.log(`✅ 응답 시간: ${(endTime - startTime) / 1000}초`);
+
+        fs.unlinkSync(req.file.path);
+        res.json(response.data);
+      } catch (axiosError) {
+        console.error("❌ Python 서버 에러:", {
+          message: axiosError.message,
+          code: axiosError.code,
+          response: axiosError.response?.status,
+          responseData: axiosError.response?.data,
+          responseText: axiosError.response?.statusText,
+        });
+        throw axiosError;
+      }
+    } catch (error) {
+      if (req.file?.path) fs.unlinkSync(req.file.path);
+      next(error);
+    }
+  }
+);
 app.post(
   "/api/analyze-ocr",
   upload.single("uploadFile"),
@@ -169,7 +231,7 @@ app.post(
         ? { Authorization: req.headers.authorization, path: req.file.path }
         : {};
       const response = await axios.post(
-        "http://localhost:5001/api/analyze-ocr",
+        `${PYTHON_API_URL}/api/analyze-ocr`,
         formData,
         {
           headers,
@@ -195,7 +257,7 @@ app.post("/api/analyze", async (req, res) => {
     const headers = authHeader ? { Authorization: authHeader } : {};
 
     const response = await axios.post(
-      "http://localhost:5001/api/analyze",
+      `${PYTHON_API_URL}/api/analyze`,
       {
         text: clipboard,
       },

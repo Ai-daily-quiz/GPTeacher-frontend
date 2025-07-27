@@ -24,7 +24,6 @@ export const ModeSelect = ({ setShowClipboard, setShowDropZone }) => {
       >
         <option value="clipboard">클립보드 </option>
         <option value="pdf-text">PDF 텍스트 파일</option>
-        <option value="pdf-ocr">PDF 이미지 파일</option>
       </select>
       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
         <svg

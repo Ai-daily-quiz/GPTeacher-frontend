@@ -1,0 +1,8 @@
+branch-defaults:
+  default:
+    environment: Quiz-app-python-env
+global:
+  profile: eb-cli
+  application_name: Quiz-app-python
+  default_platform: "Python 3.11 running on 64bit Amazon Linux 2023"
+  default_region: ap-northeast-2
