@@ -1,11 +1,24 @@
-backend/python-server/.env
-backend/python-server/venv/
-backend/python-server/__pycache__/
-backend/node-server/.env
-backend/node-server/node_modules/
-frontend/.env
-.DS_Store
-_jpype.*
+# Logs
+logs
 *.log
-__pycache__/
-*.pyc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.env
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
