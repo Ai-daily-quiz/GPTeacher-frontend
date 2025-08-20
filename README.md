@@ -42,7 +42,7 @@ GPTeacher 프로젝트는 **생성형 Ai**를 활용해 사용자가 PDF 파일 
 - [기술 스택](#기술-스택)
   - [Client](#client)
   - [Server](#server)
-  - [Deployment](#deployment)
+  - [Infra](#infra)
 - [기능 구현 및 챌린지](#기능-구현-및-챌린지)
   - [카카오 oAuth와 KOE205 에러](#카카오-oauth와-koe205-에러)
   - [드래그 앤 드랍](#드래그-앤-드랍)
@@ -115,6 +115,7 @@ GPTeacher 프로젝트는 **생성형 Ai**를 활용해 사용자가 PDF 파일 
   <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+    <img src="https://img.shields.io/badge/Zustand-a83254?style=for-the-badge&logo=Zustand&logoColor=white">
 </p>
 <br>
 <br>
@@ -129,15 +130,18 @@ GPTeacher 프로젝트는 **생성형 Ai**를 활용해 사용자가 PDF 파일 
   <img src="https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" />
   <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" />
+  
 </p>
 <br>
 <br>
 
-## **Deployment**
+## **Infra**
 
 <p>
   <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/AWS%20Elastic%20Beanstalk-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prettier-1A2B34?style=for-the-badge&logo=prettier&logoColor=F7B93E" />
+<img src="https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white" />
 </p>
 <br><br><br><br>
 
@@ -316,9 +320,9 @@ you-tube, netflix 영상을 클릭하기 전 호버만해도 영상이 로드 �
 
 # 회고
 
-혼자 프로젝트를 진행하면서 협업에서 사용하는 방식들을 직접 적용해보며 연습할 수 있는 좋은 기회라고 생각했습니다.
+개인 프로젝트를 진행하면서도 협업에할 때 사용하는 방식들을 적용해볼 수 있는 좋은 기회라고 생각했습니다.
 AI 기반 코드 리뷰 도구를 활용해 코드 품질을 자가점검하고, GitHub에서 이슈를 생성하고 PR을 등록하며 협업 흐름을 시뮬레이션하며 진행해갔습니다.
-속도는 분명 느렸지만, 이러한 과정과 개발 프로세스를 하나씩 갖춰가는 경험은 개발자로써 마땅히 갖춰야하는 기본이고 중요한 과정이라고 생각했습니다.
+속도는 느릴 수 있지만, 이러한 과정과 개발 프로세스를 하나씩 갖춰가는 경험은 개발자로써 마땅히 갖춰야하는 기본이고 중요한 과정이라고 생각했습니다.
 
 두 번의 프로젝트를 연달아 진행했지만, 그 과정에서 느낀 가장 큰 인사이트는 결국 ‘직접 부딪히고 경험하는 것’이 가장 빠른 성장의 길이라는 것이었습니다. 더 다양한 환경과 팀에서 협업하며 더 많은 경험을 쌓으며 개발 역량뿐 아니라 커뮤니케이션 능력, 문제 해결력까지 함께 성장시켜 나가고자 합니다.
 

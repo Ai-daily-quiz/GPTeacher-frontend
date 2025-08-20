@@ -40,7 +40,6 @@ export default function TimeBar({ isSubmitted, questionIndex, handleAnswer }) {
           clearInterval(intervalRef.current);
           setProgress((Date.now() - startRef.current) / (quizLimitSec * 10));
           // 타임 오버 실패 함수 호출
-          console.log('타임오버');
           handleAnswer();
         }
         return nextSec;
