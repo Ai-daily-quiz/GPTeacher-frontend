@@ -76,69 +76,63 @@ function App() {
       setIsNewQuiz(true);
       setTopics(response.data.result.topics);
 
-      console.log('LLM 결과 주제 : ', response.data.result.topics);
-      console.log('response.data:', response.data);
-      console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
       setUploadFile(null);
     } catch (error) {
-      console.error('PDF 업로드 실패:', error);
-      console.error('에러 응답:', error.response?.data);
-      console.error('에러 상태:', error.response?.status);
       setIsLoading(false);
       toast.error(error.response.data.message);
     }
   };
 
-  const handlePDFUploadOCR = async () => {
-    if (!uploadFile) {
-      console.error('업로드할 파일이 없습니다');
-      return;
-    }
-    setIsPreview(false);
-    if (isResponse) {
-      setIsTopicCards(true);
-    } else {
-      setIsLoading(true);
-    }
+  // const handlePDFUploadOCR = async () => {
+  //   if (!uploadFile) {
+  //     console.error('업로드할 파일이 없습니다');
+  //     return;
+  //   }
+  //   setIsPreview(false);
+  //   if (isResponse) {
+  //     setIsTopicCards(true);
+  //   } else {
+  //     setIsLoading(true);
+  //   }
 
-    const formData = new FormData();
-    formData.append('uploadFile', uploadFile);
+  //   const formData = new FormData();
+  //   formData.append('uploadFile', uploadFile);
 
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+  //   try {
+  //     const {
+  //       data: { session },
+  //     } = await supabase.auth.getSession();
 
-      const headers = session?.access_token
-        ? { Authorization: `Bearer ${session?.access_token}` }
-        : {};
+  //     const headers = session?.access_token
+  //       ? { Authorization: `Bearer ${session?.access_token}` }
+  //       : {};
 
-      const response = await axios.post(
-        isDev ? `${EXPRESS_API_URL}/api/analyze-ocr` : `/api/analyze-ocr`,
-        formData,
-        {
-          headers,
-          timeout: 300000, // 5분 타임아웃
-        }
-      );
-      // 퀴즈 결과 처리
+  //     const response = await axios.post(
+  //       isDev ? `${EXPRESS_API_URL}/api/analyze-ocr` : `/api/analyze-ocr`,
+  //       formData,
+  //       {
+  //         headers,
+  //         timeout: 300000, // 5분 타임아웃
+  //       }
+  //     );
+  //     // 퀴즈 결과 처리
 
-      setIsResponse(true);
-      setIsNewQuiz(true);
-      setTopics(response.data.result.topics);
+  //     setIsResponse(true);
+  //     setIsNewQuiz(true);
+  //     setTopics(response.data.result.topics);
 
-      console.log('LLM 결과 주제 : ', response.data.result.topics);
-      console.log('response.data:', response.data);
-      console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
-      setUploadFile(null);
-    } catch (error) {
-      console.error('PDF 업로드 실패:', error);
-      console.error('에러 응답:', error.response?.data);
-      console.error('에러 상태:', error.response?.status);
-      setIsLoading(false);
-      toast.error(error.response.data.message);
-    }
-  };
+  //     console.log('LLM 결과 주제 : ', response.data.result.topics);
+  //     console.log('response.data:', response.data);
+  //     console.log('생성 퀴즈 갯수 : ', response.data.total_question); // 분모
+  //     setUploadFile(null);
+  //   } catch (error) {
+  //     console.error('PDF 업로드 실패:', error);
+  //     console.error('에러 응답:', error.response?.data);
+  //     console.error('에러 상태:', error.response?.status);
+  //     setIsLoading(false);
+  //     toast.error(error.response.data.message);
+  //   }
+  // };
 
   const countPending = async () => {
     // 최초 로그인 동작
@@ -208,10 +202,34 @@ function App() {
       setQuizMode('pending');
       setShowIncorrectButton(true);
       await getPendingQuiz();
+    } else if (mode === 'free-quiz') {
+      setQuizMode('free-quiz');
+      // await getPendingQuiz();
+      await getFreeQuiz();
     } else {
       // 틀린 퀴즈 완료 버튼 => 주제 카드
       setShowIncorrectButton(true);
       // 마지막일 때만
+    }
+  };
+
+  const getFreeQuiz = async () => {
+    try {
+      const response = await axios.get(
+        isDev ? `${EXPRESS_API_URL}/api/quiz/free` : `/api/quiz/free`
+      );
+
+      setPendingList(response.data.result);
+      if (response.data.free_count === 0) {
+        setIsTopicCards(false);
+        setIsPreview(true);
+        return;
+      }
+      setTopics(response.data.result);
+      setIsTopicCards(true);
+      setTotalQuestion(response.data.free_count);
+    } catch (error) {
+      console.error('무료 퀴즈 가져오기 오류:', error);
     }
   };
 
@@ -230,9 +248,7 @@ function App() {
         }
       );
 
-      console.log('틀린 퀴즈 리스트:', response.data.result);
       setPendingList(response.data.result);
-      console.log('틀린 퀴즈 수:', response.data.incorrect_count);
       if (response.data.incorrect_count === 0) {
         setIsTopicCards(false);
         setIsPreview(true);
@@ -261,9 +277,7 @@ function App() {
         }
       );
 
-      console.log('진행 퀴즈 리스트:', response.data.result);
       setPendingList(response.data.result);
-      console.log('진행 퀴즈 수:', response.data.pending_count);
       if (response.data.pending_count === 0) {
         setIsTopicCards(false);
         setIsPreview(true);
@@ -288,13 +302,9 @@ function App() {
     quizMode
   ) => {
     try {
-      console.log('받은 dbResult:', dbResult);
-      console.log('받은 quizMode:', quizMode);
-
       if (dbResult === 'fail') {
         return;
       }
-      console.log('🟢 quizMode :', quizMode);
 
       const {
         data: { session },
@@ -317,8 +327,6 @@ function App() {
           },
         }
       );
-
-      console.log('퀴즈 결과 저장됨:', response.data);
     } catch (error) {
       console.error('퀴즈 제출 오류:', error);
     }
@@ -356,6 +364,11 @@ function App() {
         // 틀린 문제 조회 함수
         setQuizMode('incorrect');
         await getIncorrectQuiz();
+      }
+      if (quizMode === 'free-quiz') {
+        // 무료 퀴즈 조회 함수
+        setQuizMode('free-quiz');
+        await getFreeQuiz();
       } else {
         // 진행중인 퀴즈 버튼 클릭시
         setQuizMode('pending');
@@ -369,7 +382,6 @@ function App() {
 
   const handleClipBoardSumbit = () => {
     setIsPreview(false);
-    console.log('보내기 버튼 클릭!');
     // 분석이 완료된 경우 isResponse
     if (isResponse) {
       setIsTopicCards(true);
@@ -381,18 +393,15 @@ function App() {
 
   const handleSelectedTopic = (category, topic) => {
     setSelectedTopic(topic);
-    console.log('topic :', topic);
 
     const foundTopic = topics.find(element => element.category === category);
     if (foundTopic) {
       const questionsLength = foundTopic.questions.length;
-      console.log('questionsLength :', questionsLength);
       setTotalQuestion(questionsLength);
     }
   };
 
   const handleLoginModal = () => {
-    console.log('로그인 모달');
     setIsLoginModal(true);
   };
 
@@ -536,6 +545,7 @@ function App() {
 
               {/* 로그아웃 버튼 */}
               <LoginModal user={user} />
+
               <button
                 className="bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"
                 onClick={moveHome}
@@ -579,6 +589,17 @@ function App() {
                   className="flex items-center bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
                 >
                   로그인
+                </button>
+                <button
+                  onClick={() => handleShowTopics('free-quiz')}
+                  className="flex items-center bg-white text-gray-700 px-4 py-1 rounded-full text-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110 transform border border-gray-200"
+                >
+                  연습문제 &nbsp;
+                  <img
+                    src="/assets/quiz-icon-green.png"
+                    className="w-6"
+                    alt=""
+                  />
                 </button>
                 <button
                   className="bg-white text-gray-700 px-1.5 py-1.5 rounded-full text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 border border-gray-200 hover:scale-110 transform"

@@ -17,6 +17,8 @@ export const TopicCards = ({
   const getTopicCardColor = quizMode => {
     if (quizMode === 'incorrect') {
       return 'red';
+    } else if (quizMode === 'free-quiz') {
+      return 'green';
     } else {
       return 'blue';
     }
@@ -27,6 +29,10 @@ export const TopicCards = ({
     red: {
       gradient: 'from-red-400 to-red-600',
       blur: 'bg-gradient-to-br from-red-300 to-red-600',
+    },
+    green: {
+      gradient: 'from-green-400 to-green-600',
+      blur: 'bg-gradient-to-br from-green-300 to-green-600',
     },
     blue: {
       gradient: 'from-cyan-400 to-cyan-600',
