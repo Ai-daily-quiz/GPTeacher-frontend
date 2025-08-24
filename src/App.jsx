@@ -298,8 +298,7 @@ function App() {
     result,
     questionIndex,
     totalIndex,
-    dbResult,
-    quizMode
+    dbResult
   ) => {
     try {
       if (dbResult === 'fail') {

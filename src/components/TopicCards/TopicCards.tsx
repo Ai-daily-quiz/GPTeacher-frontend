@@ -8,7 +8,8 @@ type Topic = {
   questions: [
     {
       quiz_id: string;
-      type: 'mulitple';
+      type: 'multiple';
+      question: string;
       options: string[];
       correct_answer: number;
       explanation: string;
@@ -16,7 +17,7 @@ type Topic = {
     {
       quiz_id: string;
       type: 'ox';
-      questions: string;
+      question: string;
       options: string[];
       correct_answer: number;
       explanation: string;
