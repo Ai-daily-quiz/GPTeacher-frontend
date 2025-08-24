@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import ProgressBar from '@ramonak/react-progress-bar';
 
-export default function TimeBar({ isSubmitted, questionIndex, handleAnswer }) {
+export default function TimeBar(
+  isSubmitted: boolean,
+  questionIndex: number,
+  handleAnswer: () => void
+) {
   const [progress, setProgress] = useState(0);
   const [sec, setSec] = useState(0);
-  const intervalRef = useRef(null);
+  const intervalRef = useRef<number | NodeJS.Timeout>(undefined);
   const startRef = useRef(0);
 
   const quizLimitSec = 20;
