@@ -2,5 +2,5 @@ import { create } from 'zustand';
 
 export const useRequestTypeStore = create(set => ({
   selectedMode: 'clipboard',
-  setSelectedMode: mode => set({ selectedMode: mode }),
+  setSelectedMode: (mode: string) => set({ selectedMode: mode }),
 }));
