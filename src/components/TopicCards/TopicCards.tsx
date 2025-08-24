@@ -1,20 +1,51 @@
 import { useEffect } from 'react';
 
+type Topic = {
+  topic_id: string;
+  category: string;
+  title: string;
+  description: string;
+  questions: [
+    {
+      quiz_id: string;
+      type: 'mulitple';
+      options: string[];
+      correct_answer: number;
+      explanation: string;
+    },
+    {
+      quiz_id: string;
+      type: 'ox';
+      questions: string;
+      options: string[];
+      correct_answer: number;
+      explanation: string;
+    },
+  ];
+};
+
+type TopicCardsProps = {
+  topics: Topic[];
+  onTopicSelect: (category: string, topic: Topic) => void;
+  setIsPreview: (value: boolean) => void;
+  quizMode: string;
+};
+
 export const TopicCards = ({
   topics,
   onTopicSelect,
   setIsPreview,
   quizMode,
-}) => {
+}: TopicCardsProps) => {
   useEffect(() => {
     setIsPreview(false);
   }, []);
 
-  const handleTopic = (category, topic) => {
+  const handleTopic = (category: string, topic: Topic) => {
     onTopicSelect(category, topic);
   };
 
-  const getTopicCardColor = quizMode => {
+  const getTopicCardColor = (quizMode: string) => {
     if (quizMode === 'incorrect') {
       return 'red';
     } else if (quizMode === 'free-quiz') {
@@ -47,7 +78,7 @@ export const TopicCards = ({
     <>
       <div className="flex justify-center">
         <div className="grid grid-cols-2 gap-6">
-          {topics.map(topic => (
+          {topics.map((topic: Topic) => (
             <div
               key={topic.topic_id}
               className="relative w-[160px] h-[220px] group cursor-pointer transform transition-all duration-300"

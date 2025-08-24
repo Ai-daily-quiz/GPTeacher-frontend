@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import TimeBar from '../ProgressBar/ProgressBar';
 
+type QuizProps = {
+  quizMode: string;
+  clickEnd: (value: string) => void;
+  selectedTopic: (value: string) => void;
+  setSelectedTopic: (value: string) => void;
+  setIsTopicComplete: (value: boolean) => void;
+  onClickSubmit: (value: string) => void;
+  totalQuestion: number;
+};
+
 export const Quiz = ({
   quizMode,
   clickEnd,
@@ -9,7 +19,7 @@ export const Quiz = ({
   setIsTopicComplete,
   onClickSubmit,
   totalQuestion,
-}) => {
+}: QuizProps) => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -19,7 +29,7 @@ export const Quiz = ({
     selectedTopic.questions[questionIndex].correct_answer
   );
   const dbResult = selectedTopic.questions[questionIndex].result;
-  const getOptionStyle = index => {
+  const getOptionStyle = (index: number) => {
     if (!isSubmitted) {
       return 'bg-white border border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer transform transition-all hover:scale-[1.02] hover:shadow-md';
     }
