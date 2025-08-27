@@ -1,6 +1,11 @@
 import supabase from '../../supabase';
+import type { User } from '@supabase/supabase-js';
 
-const LoginModal = ({ user }) => {
+type LoginModalProps = {
+  user: User;
+};
+
+const LoginModal = ({ user }: LoginModalProps) => {
   const handleGoogleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -18,7 +23,8 @@ const LoginModal = ({ user }) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
       options: {
-        scopes: ['profile_nickname', 'profile_image'],
+        // scopes: ['profile_nickname', 'profile_image'],
+        scopes: ['profile_nickname', 'profile_image'].join(' '),
         redirectTo: import.meta.env.VITE_REDIRECT_URL || window.location.origin,
       },
     });

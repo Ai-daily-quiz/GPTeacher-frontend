@@ -19,17 +19,7 @@ type QuizProps = {
   selectedTopic: Topic;
   setSelectedTopic: (value: string | null) => void;
   setIsTopicComplete: (value: boolean) => void;
-  onClickSubmit: (
-    quiz_id: string | undefined,
-    topic_id: string,
-    selectedAnswer: number | null,
-    result: 'pass' | 'fail',
-    questionIndex: number,
-    totalQuestions: number,
-    dbResult: string | null | undefined,
-    quizMode: string
-  ) => void;
-
+  onClickSubmit: (value: ClickSubmitParam) => void;
   totalQuestion: number;
 };
 
@@ -47,9 +37,7 @@ export const Quiz = ({
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const correctAnswer = Number(
-    selectedTopic.questions[questionIndex]?.correct_answer
-  );
+  const correctAnswer = Number();
   const dbResult = selectedTopic?.questions[questionIndex]?.result;
   const getOptionStyle = (index: number) => {
     if (!isSubmitted) {
@@ -68,20 +56,23 @@ export const Quiz = ({
 
   const handleAnswer = (index: number) => {
     setIsSubmitted(true);
+    if (index === -1) {
+      setSelectedAnswer(null);
+    }
     setSelectedAnswer(index);
   };
 
   const moveNextQuestion = () => {
-    onClickSubmit(
-      selectedTopic.questions[questionIndex]?.quiz_id,
-      selectedTopic.topic_id,
-      selectedAnswer,
-      selectedAnswer === correctAnswer ? 'pass' : 'fail',
-      questionIndex,
-      selectedTopic.questions.length - 1,
-      dbResult,
-      quizMode
-    );
+    onClickSubmit({
+      quiz_id: selectedTopic?.questions[questionIndex]?.quiz_id,
+      topic_id: selectedTopic.topic_id,
+      selectedAnswer: selectedAnswer,
+      result: selectedAnswer === correctAnswer ? 'pass' : 'fail',
+      questionIndex: questionIndex,
+      totalQuestions: selectedTopic.questions.length - 1,
+      dbResult: dbResult,
+      quizMode: quizMode,
+    });
     const nextIndex = questionIndex + 1;
     if (nextIndex >= selectedTopic.questions.length) {
       setIsCompleted(true);
@@ -157,13 +148,13 @@ export const Quiz = ({
           {/* 문제 */}
           <div className="bg-gray-50 rounded-2xl p-6 mb-8">
             <h2 className="text-xl font-medium text-gray-800 leading-relaxed">
-              {selectedTopic.questions[questionIndex]?.question}
+              {selectedTopic?.questions?.[questionIndex]?.question}
             </h2>
           </div>
 
           {/* 선택지 */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            {selectedTopic.questions[questionIndex]?.options.map(
+            {selectedTopic?.questions?.[questionIndex]?.options.map(
               (option, index) => (
                 <div
                   key={index}
