@@ -5,7 +5,7 @@ import type { Topic } from '../../types/topics';
 type ClickSubmitParam = {
   quiz_id: string | undefined;
   topic_id: string;
-  selectedAnswer: number | null;
+  selectedAnswer: number | null | undefined;
   result: 'pass' | 'fail';
   questionIndex: number;
   totalQuestions: number;
@@ -32,12 +32,16 @@ export const Quiz = ({
   onClickSubmit,
   totalQuestion,
 }: QuizProps) => {
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<
+    number | undefined | null
+  >(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const correctAnswer = Number();
+  const correctAnswer = Number(
+    selectedTopic.questions[questionIndex]?.correct_answer
+  );
   const dbResult = selectedTopic?.questions[questionIndex]?.result;
   const getOptionStyle = (index: number) => {
     if (!isSubmitted) {
@@ -56,8 +60,14 @@ export const Quiz = ({
 
   const handleAnswer = (index: number) => {
     setIsSubmitted(true);
+
     if (index === -1) {
-      setSelectedAnswer(null);
+      const baseArray = [0, 1, 2, 3];
+      const remainingArray = baseArray.filter(e => e === correctAnswer);
+      const randomValue: number | undefined =
+        remainingArray[Math.floor(Math.random() * remainingArray.length)];
+      setSelectedAnswer(randomValue);
+      return;
     }
     setSelectedAnswer(index);
   };
