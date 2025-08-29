@@ -4,18 +4,25 @@ import { Preview } from './Button/Preview';
 import { MyDropzone } from './DND';
 import { ModeSelect } from './Button/ModeDropDown';
 
+type ClipboardPreviewProps = {
+  analyzeClipboard: (clipText: string) => void;
+  setUploadFile: (file: File | undefined | null) => void;
+  onSubmit: () => void;
+  onSendFile: (file: File | undefined | null) => void;
+};
+
 export const ClipboardPreview = ({
   analyzeClipboard,
   setUploadFile,
   onSubmit,
   onSendFile,
-}) => {
+}: ClipboardPreviewProps) => {
   const [fileName, setFileName] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [isFile, setIsFile] = useState(null); /// 파일선택시 플래그
-  const [showClipboard, setShowClipboard] = useState(true); // 클립보드 플래그
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isFile, setIsFile] = useState<boolean | null>(null); /// 파일선택시 플래그
+  const [showClipboard, setShowClipboard] = useState<boolean>(true); // 클립보드 플래그
   const [showDropZone, setShowDropZone] = useState(null); // 드랍존 플래그
-  const inputRef = useRef(null);
+  const inputRef = useRef<File | null>(null);
 
   const myClipBoard = navigator.clipboard;
   const handleClipBoard = () => {
@@ -34,7 +41,7 @@ export const ClipboardPreview = ({
     setFileName(null);
     setIsFile(false);
     if (inputRef.current) {
-      inputRef.current.value = null;
+      inputRef.current = null;
     }
   };
 

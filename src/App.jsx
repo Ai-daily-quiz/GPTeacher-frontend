@@ -155,7 +155,7 @@ function App() {
       setIsPendingQuestion(pendingQuizzes);
       return response.data.pending_count;
     } catch (error) {
-      console.error('퀴즈 가져오기 오류:', error);
+      // console.error('퀴즈 가져오기 오류:', error);
     }
   };
 
@@ -181,7 +181,7 @@ function App() {
       setIsIncorrectQuestion(incorrectQuizzes);
       return response.data.incorrect_count;
     } catch (error) {
-      console.error('퀴즈 가져오기 오류:', error);
+      // console.error('퀴즈 가져오기 오류:', error);
     }
   };
 
@@ -229,7 +229,7 @@ function App() {
       setIsTopicCards(true);
       setTotalQuestion(response.data.free_count);
     } catch (error) {
-      console.error('무료 퀴즈 가져오기 오류:', error);
+      // console.error('무료 퀴즈 가져오기 오류:', error);
     }
   };
 
@@ -258,7 +258,7 @@ function App() {
       setIsTopicCards(true);
       setTotalQuestion(response.data.incorrect_count);
     } catch (error) {
-      console.error('틀린 퀴즈 가져오기 오류:', error);
+      // console.error('틀린 퀴즈 가져오기 오류:', error);
     }
   };
 
@@ -287,7 +287,7 @@ function App() {
       setIsTopicCards(true);
       setTotalQuestion(response.data.pending_count);
     } catch (error) {
-      console.error('남은 퀴즈 가져오기 오류:', error);
+      // console.error('남은 퀴즈 가져오기 오류:', error);
     }
   };
 
@@ -298,8 +298,7 @@ function App() {
     result,
     questionIndex,
     totalIndex,
-    dbResult,
-    quizMode
+    dbResult
   ) => {
     try {
       if (dbResult === 'fail') {

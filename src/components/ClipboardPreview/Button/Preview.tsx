@@ -1,6 +1,16 @@
 import { Button } from './Button';
 
-export const Preview = ({ preview, showClipboard, onClickPreview }) => {
+interface PreviewProps {
+  preview: string | null;
+  showClipboard: boolean;
+  onClickPreview: () => void;
+}
+
+export const Preview = ({
+  preview,
+  showClipboard,
+  onClickPreview,
+}: PreviewProps) => {
   return (
     <div className="w-[500px] h-[400px] bg-[#fafafa] rounded-lg shadow-lg overflow-hidden">
       <div className="bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-2 flex items-center gap-2 border-b border-gray-200">

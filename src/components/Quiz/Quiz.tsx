@@ -1,5 +1,27 @@
 import { useEffect, useState } from 'react';
 import TimeBar from '../ProgressBar/ProgressBar';
+import type { Topic } from '../../types/topics';
+
+type ClickSubmitParam = {
+  quiz_id: string | undefined;
+  topic_id: string;
+  selectedAnswer: number | null | undefined;
+  result: 'pass' | 'fail';
+  questionIndex: number;
+  totalQuestions: number;
+  dbResult: string | null | undefined;
+  quizMode: string;
+};
+
+type QuizProps = {
+  quizMode: string;
+  clickEnd: (value: string) => void;
+  selectedTopic: Topic;
+  setSelectedTopic: (value: string | null) => void;
+  setIsTopicComplete: (value: boolean) => void;
+  onClickSubmit: (value: ClickSubmitParam) => void;
+  totalQuestion: number;
+};
 
 export const Quiz = ({
   quizMode,
@@ -9,17 +31,19 @@ export const Quiz = ({
   setIsTopicComplete,
   onClickSubmit,
   totalQuestion,
-}) => {
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
+}: QuizProps) => {
+  const [selectedAnswer, setSelectedAnswer] = useState<
+    number | undefined | null
+  >(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
   const correctAnswer = Number(
-    selectedTopic.questions[questionIndex].correct_answer
+    selectedTopic.questions[questionIndex]?.correct_answer
   );
-  const dbResult = selectedTopic.questions[questionIndex].result;
-  const getOptionStyle = index => {
+  const dbResult = selectedTopic?.questions[questionIndex]?.result;
+  const getOptionStyle = (index: number) => {
     if (!isSubmitted) {
       return 'bg-white border border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer transform transition-all hover:scale-[1.02] hover:shadow-md';
     }
@@ -34,22 +58,31 @@ export const Quiz = ({
     return 'bg-gray-50 border border-gray-300 opacity-60';
   };
 
-  const handleAnswer = index => {
+  const handleAnswer = (index: number) => {
     setIsSubmitted(true);
+
+    if (index === -1) {
+      const baseArray = [0, 1, 2, 3];
+      const remainingArray = baseArray.filter(e => e === correctAnswer);
+      const randomValue: number | undefined =
+        remainingArray[Math.floor(Math.random() * remainingArray.length)];
+      setSelectedAnswer(randomValue);
+      return;
+    }
     setSelectedAnswer(index);
   };
 
-  const moveNextQuestion = async () => {
-    await onClickSubmit(
-      selectedTopic.questions[questionIndex].quiz_id,
-      selectedTopic.topic_id,
-      selectedAnswer,
-      selectedAnswer === correctAnswer ? 'pass' : 'fail',
-      questionIndex,
-      selectedTopic.questions.length - 1,
-      dbResult,
-      quizMode
-    );
+  const moveNextQuestion = () => {
+    onClickSubmit({
+      quiz_id: selectedTopic?.questions[questionIndex]?.quiz_id,
+      topic_id: selectedTopic.topic_id,
+      selectedAnswer: selectedAnswer,
+      result: selectedAnswer === correctAnswer ? 'pass' : 'fail',
+      questionIndex: questionIndex,
+      totalQuestions: selectedTopic.questions.length - 1,
+      dbResult: dbResult,
+      quizMode: quizMode,
+    });
     const nextIndex = questionIndex + 1;
     if (nextIndex >= selectedTopic.questions.length) {
       setIsCompleted(true);
@@ -125,13 +158,13 @@ export const Quiz = ({
           {/* 문제 */}
           <div className="bg-gray-50 rounded-2xl p-6 mb-8">
             <h2 className="text-xl font-medium text-gray-800 leading-relaxed">
-              {selectedTopic.questions[questionIndex].question}
+              {selectedTopic?.questions?.[questionIndex]?.question}
             </h2>
           </div>
 
           {/* 선택지 */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            {selectedTopic.questions[questionIndex].options.map(
+            {selectedTopic?.questions?.[questionIndex]?.options.map(
               (option, index) => (
                 <div
                   key={index}
@@ -180,7 +213,7 @@ export const Quiz = ({
                     <p className="font-semibold text-blue-900 mt12">해설</p>
                   </div>
                   <p className="text-blue-700 leading-relaxed ml-3">
-                    {selectedTopic.questions[questionIndex].explanation}
+                    {selectedTopic.questions[questionIndex]?.explanation}
                   </p>
                 </div>
               </div>
