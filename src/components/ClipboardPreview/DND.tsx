@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-export const MyDropzone = ({ setUploadFile, onSendFile }) => {
-  const [file, setFile] = useState(null);
+export const MyDropzone = (
+  setUploadFile: (file: File | undefined | null) => void,
+  onSendFile: () => void
+) => {
+  const [file, setFile] = useState<File | undefined | null>(null);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -20,7 +23,7 @@ export const MyDropzone = ({ setUploadFile, onSendFile }) => {
 
   const handleOnClick = async () => {
     try {
-      await onSendFile();
+      onSendFile();
       setUploadFile(null);
     } catch (error) {
       console.error('PDF 업로드 에러 : ', error);
