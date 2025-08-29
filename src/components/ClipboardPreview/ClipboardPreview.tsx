@@ -20,7 +20,7 @@ export const ClipboardPreview = ({
   const [fileName, setFileName] = useState(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isFile, setIsFile] = useState<boolean | null>(null); /// 파일선택시 플래그
-  const [showClipboard, setShowClipboard] = useState(true); // 클립보드 플래그
+  const [showClipboard, setShowClipboard] = useState<boolean>(true); // 클립보드 플래그
   const [showDropZone, setShowDropZone] = useState(null); // 드랍존 플래그
   const inputRef = useRef<File | null>(null);
 
