@@ -1,8 +1,18 @@
+import React from 'react';
 import { useRequestTypeStore } from '../../../store/useRequestTypeStore';
-export const ModeSelect = ({ setShowClipboard, setShowDropZone }) => {
+
+interface ModeSelectProps {
+  setShowClipboard: (value: boolean) => void;
+  setShowDropZone: (value: boolean | null) => void;
+}
+
+export const ModeSelect = ({
+  setShowClipboard,
+  setShowDropZone,
+}: ModeSelectProps) => {
   const setSelectedMode = useRequestTypeStore(state => state.setSelectedMode);
 
-  const handleChange = e => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const mode = e.target.value;
     setSelectedMode(mode);
 
