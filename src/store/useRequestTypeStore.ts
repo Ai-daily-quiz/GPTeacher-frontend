@@ -6,6 +6,7 @@ interface RequestTypeState {
 }
 
 export const useRequestTypeStore = create<RequestTypeState>(set => ({
+
   selectedMode: 'clipboard',
   setSelectedMode: (mode: string) => set({ selectedMode: mode }),
 }));
